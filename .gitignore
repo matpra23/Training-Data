@@ -1,0 +1,12 @@
+#Dane wrażliwe
+.env
+zawodnicy.json
+
+#Opcja uruchomienia aplikacji
+launch.txt
+
+#Kod
+generator_tokena.py
+
+#Cache
+__pycache__/

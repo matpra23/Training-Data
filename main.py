@@ -133,7 +133,7 @@ with tab1:
             
             col1, col2 = st.columns(2)
             start_date = col1.date_input("Data początkowa", value=pd.to_datetime("today") - pd.Timedelta(days=7))
-            end_date = col2.date_input("Data końcowa", value=pd.to_datetime("today"))
+            end_date = col2.date_input("Data końcowa", value=pd.to_datetime("today") + pd.Timedelta(days=1))
 
             # SŁOWNIK TŁUMACZEŃ (Potrzebny nadal do FILTROWANIA)
             TYPE_MAP = {

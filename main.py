@@ -98,11 +98,12 @@ tab1, tab2 = st.tabs(["Analiza Treningów", "Dodaj Zawodnika (Ręcznie)"])
 
 
 # --- ZAKŁADKA 1: ANALIZA ---
+# --- ZAKŁADKA 1: ANALIZA ---
 with tab1:
     db = load_db()
     
     if not db:
-        st.info("Baza jest pusta. Przejdź do zakładki 'Dodaj Zawodnika (Ręcznie)', aby kogoś dodać.")
+        st.info("Baza jest pusta. Przejdź do zakładki 'Dodaj Zawodnika', aby kogoś dodać.")
     else:
         imiona = list(db.keys())
         wybrany_imie = st.selectbox("Wybierz podopiecznego:", imiona)
@@ -136,8 +137,7 @@ with tab1:
             start_date = col1.date_input("Data początkowa", value=pd.to_datetime("today") - pd.Timedelta(days=30))
             end_date = col2.date_input("Data końcowa", value=pd.to_datetime("today"))
 
-            # NOWOŚĆ: Wybór aktywności
-            # Definiujemy co jest czym. Strava ma dużo typów, grupujemy je.
+            # SŁOWNIK TŁUMACZEŃ (Rozbudowany)
             TYPE_MAP = {
                 "Run": "Bieganie",
                 "VirtualRun": "Bieganie",
@@ -147,14 +147,18 @@ with tab1:
                 "EBikeRide": "Jazda na rowerze",
                 "GravelRide": "Jazda na rowerze",
                 "MountainBikeRide": "Jazda na rowerze",
-                "Swim": "Pływanie"
+                "Swim": "Pływanie",
+                "Walk": "Spacer",
+                "Hike": "Wędrówka",
+                "WeightTraining": "Siłownia",
+                "Workout": "Trening"
             }
             
-            mozliwe_typy = ["Bieganie", "Jazda na rowerze", "Pływanie", "Inne"]
+            mozliwe_typy = ["Bieganie", "Jazda na rowerze", "Pływanie", "Spacer", "Siłownia", "Inne"]
             wybrane_typy = st.multiselect(
                 "Wybierz typy aktywności do analizy:",
                 options=mozliwe_typy,
-                default=["Bieganie", "Jazda na rowerze", "Pływanie"] # Domyślnie zaznaczone wszystko
+                default=["Bieganie", "Jazda na rowerze", "Pływanie"]
             )
 
             if st.button("Pobierz i filtruj treningi"):
@@ -163,10 +167,24 @@ with tab1:
                         activities = client.get_activities(after=str(start_date), before=str(end_date), limit=100)
                         
                         data = []
+                        nierozpoznane_typy = set() # Do debugowania
+
                         for activity in activities:
-                            # 1. Tłumaczenie typu aktywności na Polski
-                            raw_type = str(activity.type) # np. "Run"
-                            polski_typ = TYPE_MAP.get(raw_type, "Inne") # Jak nie ma w mapie, to "Inne" (np. Siłownia)
+                            # 1. POBIERANIE TYPU (Metoda pancerna)
+                            # Próbujemy pobrać sport_type (nowy), a jak nie ma to type (stary)
+                            raw_type = getattr(activity, 'sport_type', None)
+                            if not raw_type:
+                                raw_type = activity.type
+                            
+                            # Zamieniamy na czysty napis (str) i usuwamy ew. śmieci
+                            raw_type_str = str(raw_type).replace("ActivityType.", "")
+                            
+                            # Tłumaczenie
+                            polski_typ = TYPE_MAP.get(raw_type_str, "Inne")
+                            
+                            # Jeśli trafiło do Inne, zapiszmy co to było, żebyś wiedział
+                            if polski_typ == "Inne":
+                                nierozpoznane_typy.add(raw_type_str)
 
                             # 2. Przeliczanie danych
                             dist_km = round(extract_number(activity.distance) / 1000, 2)
@@ -177,30 +195,26 @@ with tab1:
                             avg_speed_ms = extract_number(activity.average_speed)
                             pace_str = "-"
                             if avg_speed_ms > 0:
-                                # Dla biegania (min/km)
                                 if polski_typ == "Bieganie":
                                     pace_decimal = (1000 / avg_speed_ms) / 60
                                     p_min = int(pace_decimal)
                                     p_sec = int((pace_decimal - p_min) * 60)
                                     pace_str = f"{p_min}:{p_sec:02d} /km"
-                                # Dla roweru (km/h) - bo rowerzyści wolą km/h
                                 elif polski_typ == "Jazda na rowerze":
                                     speed_kmh = round(avg_speed_ms * 3.6, 1)
                                     pace_str = f"{speed_kmh} km/h"
-                                # Dla pływania (min/100m)
                                 elif polski_typ == "Pływanie":
                                     pace_decimal = (100 / avg_speed_ms) / 60
                                     p_min = int(pace_decimal)
                                     p_sec = int((pace_decimal - p_min) * 60)
                                     pace_str = f"{p_min}:{p_sec:02d} /100m"
 
-                            # Link do HTML
                             activity_url = f"https://www.strava.com/activities/{activity.id}"
                             
-                            # Dodajemy do listy WSZYSTKO (filtrowanie zrobimy za chwilę w Pandas)
                             data.append({
                                 "Data": activity.start_date_local.strftime("%Y-%m-%d"),
                                 "Typ": polski_typ,
+                                "Typ Oryginalny": raw_type_str, # Kolumna pomocnicza
                                 "Nazwa": activity.name,
                                 "Dystans (km)": dist_km,
                                 "Czas (min)": duration_min,
@@ -209,26 +223,33 @@ with tab1:
                                 "Link": activity_url
                             })
                         
+                        # --- DIAGNOSTYKA (Wyświetli się tylko jeśli coś jest nie tak) ---
+                        if nierozpoznane_typy:
+                            st.warning(f"⚠️ Znaleziono aktywności o typach, których nie ma w słowniku: {nierozpoznane_typy}")
+                            st.info("Dodaj te nazwy do słownika TYPE_MAP w kodzie, przypisując im polską nazwę.")
+
                         if data:
                             df = pd.DataFrame(data)
                             
-                            # --- FILTROWANIE ---
-                            # Tu dzieje się magia: zostawiamy tylko wiersze, gdzie "Typ" jest na liście wybranych
+                            # FILTROWANIE
                             df_filtered = df[df["Typ"].isin(wybrane_typy)]
                             
                             if df_filtered.empty:
                                 st.warning(f"Pobrano treningi, ale żaden nie pasuje do filtrów: {wybrane_typy}")
+                                # Pokaż tabelę wszystkich, żebyś widział co poszło nie tak
+                                st.write("Oto wszystkie pobrane dane (przed filtrowaniem):")
+                                st.dataframe(df)
                             else:
-                                # HTML do linków w nazwie
+                                # HTML Linki
                                 df_filtered['Nazwa Treningu'] = df_filtered.apply(
                                     lambda x: f'<a href="{x["Link"]}" target="_blank" style="text-decoration:none; color:#FC4C02; font-weight:bold;">{x["Nazwa"]}</a>', 
                                     axis=1
                                 )
 
-                                # Wybór kolumn do wyświetlenia
                                 final_df = df_filtered[[
                                     'Data', 
                                     'Typ',
+                                    'Typ Oryginalny', # Zostawiam to, żebyś widział
                                     'Nazwa Treningu', 
                                     'Dystans (km)', 
                                     'Czas (min)', 
@@ -236,20 +257,17 @@ with tab1:
                                     'Tempo'
                                 ]]
                                 
-                                # Podsumowanie liczbowe (tylko przefiltrowane!)
                                 c1, c2, c3 = st.columns(3)
                                 c1.metric("Liczba treningów", len(final_df))
                                 c2.metric("Suma km", round(final_df['Dystans (km)'].sum(), 1))
                                 c3.metric("Czas (h)", round(final_df['Czas (min)'].sum() / 60, 1))
 
-                                # Wyświetlanie tabeli
                                 st.write("---")
                                 st.markdown(
                                     final_df.to_html(escape=False, index=False), 
                                     unsafe_allow_html=True
                                 )
                                 
-                                # Wykres (Tylko jeśli wybrano jeden typ, żeby nie mieszać danych)
                                 if len(wybrane_typy) == 1 and "Tętno" in final_df.columns and final_df["Tętno"].sum() > 0:
                                     fig = px.bar(final_df, x="Data", y="Tętno", 
                                                  title=f"Średnie tętno ({wybrane_typy[0]})", 
@@ -260,7 +278,8 @@ with tab1:
                             st.warning("Brak treningów w tym okresie.")
                             
                     except Exception as e:
-                        st.error(f"Wystąpił błąd: {e}")                      
+                        st.error(f"Wystąpił błąd: {e}")
+                                           
 # --- ZAKŁADKA 2: DODAWANIE (Manualne) ---
 with tab2:
     st.header("Dodaj nowego podopiecznego")

@@ -265,10 +265,28 @@ with tab1:
                                     unsafe_allow_html=True
                                 )
                                 
-                                if len(wybrane_typy) == 1 and "Tętno" in final_df.columns and final_df["Tętno"].sum() > 0:
-                                    fig = px.bar(final_df, x="Data", y="Tętno", 
-                                                 title=f"Średnie tętno ({wybrane_typy[0]})", 
-                                                 color="Dystans (km)")
+                                # --- WYKRES TĘTNA (POPRAWIONY) ---
+                                # Sprawdzamy tylko czy mamy dane o tętnie (usuwamy warunek len == 1)
+                                if "Tętno" in final_df.columns and final_df["Tętno"].sum() > 0:
+                                    
+                                    # INTELIGENTNE KOLOROWANIE:
+                                    # Jeśli wybrano wiele sportów -> koloruj wg typu (np. Rower vs Bieg)
+                                    # Jeśli wybrano jeden sport -> koloruj wg dystansu (cieniowanie)
+                                    if len(wybrane_typy) > 1:
+                                        kolor_wg = "Typ" 
+                                        tytul_wykresu = "Średnie tętno (Podział na sporty)"
+                                    else:
+                                        kolor_wg = "Dystans (km)"
+                                        tytul_wykresu = f"Średnie tętno ({wybrane_typy[0]})"
+
+                                    fig = px.bar(
+                                        final_df, 
+                                        x="Data", 
+                                        y="Tętno", 
+                                        title=tytul_wykresu, 
+                                        color=kolor_wg,
+                                        hover_data=["Nazwa Treningu", "Tempo"] # Co widać po najechaniu myszką
+                                    )
                                     st.plotly_chart(fig)
                                     
                         else:

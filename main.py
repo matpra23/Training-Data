@@ -7,7 +7,6 @@ import os
 import time
 
 # --- KONFIGURACJA ---
-# !!! WAŻNE: Tutaj wpisz swoje dane ze strony Strava API !!!
 try:
     # Próba pobrania z sekretów chmurowych (Streamlit Cloud)
     MY_CLIENT_ID = st.secrets["MY_CLIENT_ID"]
@@ -21,6 +20,41 @@ except FileNotFoundError:
 DB_FILE = 'zawodnicy.json'
 
 st.set_page_config(page_title="Trener Pro (Cockpit)", layout="wide")
+
+# --- LOGOWANIE DO APLIKACJI ---
+def check_password():
+    """Zwraca True jeśli użytkownik jest zalogowany, w przeciwnym razie wyświetla formularz."""
+    
+    # Czy mamy hasło w sekretach?
+    if "APP_PASSWORD" not in st.secrets:
+        st.error("Nie skonfigurowano hasła w secrets.toml!")
+        return False
+
+    # Czy użytkownik już wpisał dobre hasło w tej sesji?
+    if "password_correct" not in st.session_state:
+        st.session_state.password_correct = False
+
+    if st.session_state.password_correct:
+        return True
+
+    # Formularz logowania
+    st.markdown("## Panel - Logowanie")
+    password = st.text_input("Podaj hasło dostępu", type="password")
+    
+    if st.button("Zaloguj"):
+        if password == st.secrets["APP_PASSWORD"]:
+            st.session_state.password_correct = True
+            st.rerun()  # Odświeżamy stronę, żeby pokazać treść
+        else:
+            st.error("Błędne hasło")
+            
+    return False
+
+# --- BLOKADA APLIKACJI ---
+# Jeśli check_password zwróci False (niezalogowany), zatrzymujemy kod!
+if not check_password():
+    st.stop()
+
 
 # --- FUNKCJE POMOCNICZE ---
 

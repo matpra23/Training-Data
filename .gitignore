@@ -10,3 +10,5 @@ generator_tokena.py
 
 #Cache
 __pycache__/
+
+.devcontainer

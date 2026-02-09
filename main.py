@@ -135,7 +135,7 @@ with tab1:
             start_date = col1.date_input("Data początkowa", value=pd.to_datetime("today") - pd.Timedelta(days=30))
             end_date = col2.date_input("Data końcowa", value=pd.to_datetime("today"))
 
-            # SŁOWNIK TŁUMACZEŃ (Zaktualizowany o nowe typy)
+            # SŁOWNIK TŁUMACZEŃ (Potrzebny nadal do FILTROWANIA)
             TYPE_MAP = {
                 "Run": "Bieganie",
                 "VirtualRun": "Bieganie",
@@ -150,7 +150,7 @@ with tab1:
                 "Hike": "Wędrówka",
                 "WeightTraining": "Siłownia",
                 "Workout": "Trening",
-                "Yoga": "Joga"  # Dodane na podstawie Twojego błędu
+                "Yoga": "Joga"
             }
             
             mozliwe_typy = ["Bieganie", "Jazda na rowerze", "Pływanie", "Spacer", "Siłownia", "Inne"]
@@ -169,19 +169,18 @@ with tab1:
                         nierozpoznane_typy = set()
 
                         for activity in activities:
-                            # 1. POBIERANIE TYPU (POPRAWIONE CZYSZCZENIE)
+                            # 1. POBIERANIE TYPU (Czyste)
                             raw_type = getattr(activity, 'sport_type', None)
                             if not raw_type:
                                 raw_type = activity.type
                             
-                            # !!! TUTAJ JEST NAPRAWA BŁĘDU Z "root=" !!!
-                            # Usuwamy "root='", usuwamy pojedynczy apostrof "'" i "ActivityType."
+                            # Czyszczenie nazwy (usuwanie root=', ActivityType. itp.)
                             raw_type_str = str(raw_type)\
                                 .replace("root='", "")\
                                 .replace("'", "")\
                                 .replace("ActivityType.", "")
                             
-                            # Tłumaczenie
+                            # Tłumaczenie (tylko do filtra!)
                             polski_typ = TYPE_MAP.get(raw_type_str, "Inne")
                             
                             if polski_typ == "Inne":
@@ -214,8 +213,8 @@ with tab1:
                             
                             data.append({
                                 "Data": activity.start_date_local.strftime("%Y-%m-%d"),
-                                "Typ": polski_typ,
-                                "Typ Oryginalny": raw_type_str,
+                                "Typ Polski": polski_typ, # Używamy tylko do filtra, potem wyrzucimy
+                                "Typ": raw_type_str,      # To chcemy wyświetlać (np. VirtualRide)
                                 "Nazwa": activity.name,
                                 "Dystans (km)": dist_km,
                                 "Czas (min)": duration_min,
@@ -226,29 +225,28 @@ with tab1:
                         
                         # --- DIAGNOSTYKA ---
                         if nierozpoznane_typy:
-                            st.warning(f"⚠️ Znaleziono nowe typy (dodaj je do słownika): {nierozpoznane_typy}")
+                            st.warning(f"⚠️ Znaleziono nowe typy: {nierozpoznane_typy}")
 
                         if data:
                             df = pd.DataFrame(data)
                             
-                            # FILTROWANIE
-                            df_filtered = df[df["Typ"].isin(wybrane_typy)]
+                            # 1. FILTROWANIE (po polskiej nazwie)
+                            df_filtered = df[df["Typ Polski"].isin(wybrane_typy)]
                             
                             if df_filtered.empty:
                                 st.warning(f"Brak treningów pasujących do filtra: {wybrane_typy}")
-                                st.write("Wszystkie pobrane (przed filtrem):")
-                                st.dataframe(df)
                             else:
-                                # HTML Linki
+                                # 2. PRZYGOTOWANIE TABELI (Wybieramy kolumny do wyświetlenia)
+                                # Link HTML
                                 df_filtered['Nazwa Treningu'] = df_filtered.apply(
                                     lambda x: f'<a href="{x["Link"]}" target="_blank" style="text-decoration:none; color:#FC4C02; font-weight:bold;">{x["Nazwa"]}</a>', 
                                     axis=1
                                 )
 
+                                # Tu definiujemy co widać. Bierzemy "Typ" (czyli VirtualRide), a nie "Typ Polski"
                                 final_df = df_filtered[[
                                     'Data', 
-                                    'Typ',
-                                    'Typ Oryginalny', 
+                                    'Typ',            # <-- To jest ten oryginalny (VirtualRide)
                                     'Nazwa Treningu', 
                                     'Dystans (km)', 
                                     'Czas (min)', 

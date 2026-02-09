@@ -171,7 +171,7 @@ with tab2:
     # Generujemy link, który przekieruje na localhost (gdzie widać kod w pasku adresu)
     auth_url = client.authorization_url(
         client_id=MY_CLIENT_ID,
-        redirect_uri='http://localhost/exchange_token', 
+        redirect_uri='https://twoj-nick.github.io/strava-trener/sukces.html',
         scope=['activity:read_all']
     )
     

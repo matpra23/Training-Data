@@ -96,8 +96,6 @@ st.title("Centrum Trenera")
 
 tab1, tab2 = st.tabs(["Analiza Treningów", "Dodaj Zawodnika (Ręcznie)"])
 
-
-# --- ZAKŁADKA 1: ANALIZA ---
 # --- ZAKŁADKA 1: ANALIZA ---
 with tab1:
     db = load_db()
@@ -137,7 +135,7 @@ with tab1:
             start_date = col1.date_input("Data początkowa", value=pd.to_datetime("today") - pd.Timedelta(days=30))
             end_date = col2.date_input("Data końcowa", value=pd.to_datetime("today"))
 
-            # SŁOWNIK TŁUMACZEŃ (Rozbudowany)
+            # SŁOWNIK TŁUMACZEŃ (Zaktualizowany o nowe typy)
             TYPE_MAP = {
                 "Run": "Bieganie",
                 "VirtualRun": "Bieganie",
@@ -151,7 +149,8 @@ with tab1:
                 "Walk": "Spacer",
                 "Hike": "Wędrówka",
                 "WeightTraining": "Siłownia",
-                "Workout": "Trening"
+                "Workout": "Trening",
+                "Yoga": "Joga"  # Dodane na podstawie Twojego błędu
             }
             
             mozliwe_typy = ["Bieganie", "Jazda na rowerze", "Pływanie", "Spacer", "Siłownia", "Inne"]
@@ -167,22 +166,24 @@ with tab1:
                         activities = client.get_activities(after=str(start_date), before=str(end_date), limit=100)
                         
                         data = []
-                        nierozpoznane_typy = set() # Do debugowania
+                        nierozpoznane_typy = set()
 
                         for activity in activities:
-                            # 1. POBIERANIE TYPU (Metoda pancerna)
-                            # Próbujemy pobrać sport_type (nowy), a jak nie ma to type (stary)
+                            # 1. POBIERANIE TYPU (POPRAWIONE CZYSZCZENIE)
                             raw_type = getattr(activity, 'sport_type', None)
                             if not raw_type:
                                 raw_type = activity.type
                             
-                            # Zamieniamy na czysty napis (str) i usuwamy ew. śmieci
-                            raw_type_str = str(raw_type).replace("ActivityType.", "")
+                            # !!! TUTAJ JEST NAPRAWA BŁĘDU Z "root=" !!!
+                            # Usuwamy "root='", usuwamy pojedynczy apostrof "'" i "ActivityType."
+                            raw_type_str = str(raw_type)\
+                                .replace("root='", "")\
+                                .replace("'", "")\
+                                .replace("ActivityType.", "")
                             
                             # Tłumaczenie
                             polski_typ = TYPE_MAP.get(raw_type_str, "Inne")
                             
-                            # Jeśli trafiło do Inne, zapiszmy co to było, żebyś wiedział
                             if polski_typ == "Inne":
                                 nierozpoznane_typy.add(raw_type_str)
 
@@ -214,7 +215,7 @@ with tab1:
                             data.append({
                                 "Data": activity.start_date_local.strftime("%Y-%m-%d"),
                                 "Typ": polski_typ,
-                                "Typ Oryginalny": raw_type_str, # Kolumna pomocnicza
+                                "Typ Oryginalny": raw_type_str,
                                 "Nazwa": activity.name,
                                 "Dystans (km)": dist_km,
                                 "Czas (min)": duration_min,
@@ -223,10 +224,9 @@ with tab1:
                                 "Link": activity_url
                             })
                         
-                        # --- DIAGNOSTYKA (Wyświetli się tylko jeśli coś jest nie tak) ---
+                        # --- DIAGNOSTYKA ---
                         if nierozpoznane_typy:
-                            st.warning(f"⚠️ Znaleziono aktywności o typach, których nie ma w słowniku: {nierozpoznane_typy}")
-                            st.info("Dodaj te nazwy do słownika TYPE_MAP w kodzie, przypisując im polską nazwę.")
+                            st.warning(f"⚠️ Znaleziono nowe typy (dodaj je do słownika): {nierozpoznane_typy}")
 
                         if data:
                             df = pd.DataFrame(data)
@@ -235,9 +235,8 @@ with tab1:
                             df_filtered = df[df["Typ"].isin(wybrane_typy)]
                             
                             if df_filtered.empty:
-                                st.warning(f"Pobrano treningi, ale żaden nie pasuje do filtrów: {wybrane_typy}")
-                                # Pokaż tabelę wszystkich, żebyś widział co poszło nie tak
-                                st.write("Oto wszystkie pobrane dane (przed filtrowaniem):")
+                                st.warning(f"Brak treningów pasujących do filtra: {wybrane_typy}")
+                                st.write("Wszystkie pobrane (przed filtrem):")
                                 st.dataframe(df)
                             else:
                                 # HTML Linki
@@ -249,7 +248,7 @@ with tab1:
                                 final_df = df_filtered[[
                                     'Data', 
                                     'Typ',
-                                    'Typ Oryginalny', # Zostawiam to, żebyś widział
+                                    'Typ Oryginalny', 
                                     'Nazwa Treningu', 
                                     'Dystans (km)', 
                                     'Czas (min)', 
@@ -279,7 +278,7 @@ with tab1:
                             
                     except Exception as e:
                         st.error(f"Wystąpił błąd: {e}")
-                                           
+
 # --- ZAKŁADKA 2: DODAWANIE (Manualne) ---
 with tab2:
     st.header("Dodaj nowego podopiecznego")

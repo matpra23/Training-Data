@@ -367,8 +367,8 @@ st.markdown("""
         left: 0;
         bottom: 0;
         width: 100%;
-        background-color: white;
-        color: #808080; /* Szary kolor tekstu */
+        background-color: #0e1117; 
+        color: #FAFAFA;             
         text-align: center;
         padding: 10px;
         border-top: 1px solid #ddd;

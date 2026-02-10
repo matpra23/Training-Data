@@ -19,7 +19,7 @@ except FileNotFoundError:
 
 DB_FILE = 'zawodnicy.json'
 
-st.set_page_config(page_title="CoachPlus Dashboard",page_icon="intmon.png", layout="wide")
+st.set_page_config(page_title="CoachPlus",page_icon="intmon.png", layout="wide")
 # --- TWOJE LOGO ---
 # icon_image to wersja "zminimalizowana" (jak zwiniesz pasek boczny)
 st.logo(
@@ -138,8 +138,8 @@ with tab1:
             st.subheader("Ustawienia analizy")
             
             col1, col2 = st.columns(2)
-            start_date = col1.date_input("Data od", value=pd.to_datetime("today") - pd.Timedelta(days=7))
-            end_date = col2.date_input("Data do", value=pd.to_datetime("today") + pd.Timedelta(days=1))
+            start_date = col1.date_input("Filtruj od dnia", value=pd.to_datetime("today") - pd.Timedelta(days=7))
+            end_date = col2.date_input("Filtruj do dnia", value=pd.to_datetime("today") + pd.Timedelta(days=1))
 
             # SŁOWNIK TŁUMACZEŃ (Potrzebny nadal do FILTROWANIA)
             TYPE_MAP = {
@@ -354,3 +354,32 @@ with tab2:
                 st.warning("Sprawdź czy kod jest poprawny i czy Client ID/Secret w kodzie są dobre.")
         else:
             st.warning("Wypełnij oba pola (Kod i Nazwa).")
+
+
+# ==========================================
+# 👇 STOPKA (FOOTER) 👇
+# ==========================================
+
+st.markdown("""
+    <style>
+    .footer {
+        width: 100%;
+        text-align: center;
+        padding-top: 30px;
+        padding-bottom: 20px;
+        margin-top: 50px;
+        border-top: 1px solid #ddd;
+        font-size: 12px;
+        color: #666;
+    }
+    .footer a {
+        color: #FC4C02;
+        text-decoration: none;
+    }
+    </style>
+    
+    <div class="footer">
+        © 2026 <b>IntMonDev</b>. All rights reserved.<br>
+        Powered by Strava API & Streamlit
+    </div>
+    """, unsafe_allow_html=True)

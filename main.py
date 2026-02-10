@@ -19,7 +19,13 @@ except FileNotFoundError:
 
 DB_FILE = 'zawodnicy.json'
 
-st.set_page_config(page_title="Trener Pro (Cockpit)", layout="wide")
+st.set_page_config(page_title="CoachPlus Dashboard",page_icon="intmon.png", layout="wide")
+# --- TWOJE LOGO ---
+# icon_image to wersja "zminimalizowana" (jak zwiniesz pasek boczny)
+st.logo(
+    "intmon.png",   # Ścieżka do dużego logo
+    icon_image="intmon.png", # Ścieżka do małego logo (opcjonalnie to samo)
+)
 
 # --- LOGOWANIE DO APLIKACJI ---
 def check_password():
@@ -38,7 +44,7 @@ def check_password():
         return True
 
     # Formularz logowania
-    st.markdown("## Panel - Logowanie")
+    st.markdown("## Dashboard - Logowanie")
     password = st.text_input("Podaj hasło dostępu", type="password")
     
     if st.button("Zaloguj"):
@@ -92,7 +98,7 @@ def extract_number(value, type_hint="number"):
 
 # --- INTERFEJS APLIKACJI ---
 
-st.title("Centrum Trenera")
+st.title("Panel Trenera")
 
 tab1, tab2 = st.tabs(["Analiza Treningów", "Dodaj Zawodnika (Ręcznie)"])
 
@@ -132,8 +138,8 @@ with tab1:
             st.subheader("Ustawienia analizy")
             
             col1, col2 = st.columns(2)
-            start_date = col1.date_input("Data początkowa", value=pd.to_datetime("today") - pd.Timedelta(days=7))
-            end_date = col2.date_input("Data końcowa", value=pd.to_datetime("today") + pd.Timedelta(days=1))
+            start_date = col1.date_input("Data od", value=pd.to_datetime("today") - pd.Timedelta(days=7))
+            end_date = col2.date_input("Data do", value=pd.to_datetime("today") + pd.Timedelta(days=1))
 
             # SŁOWNIK TŁUMACZEŃ (Potrzebny nadal do FILTROWANIA)
             TYPE_MAP = {

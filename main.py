@@ -357,29 +357,32 @@ with tab2:
 
 
 # ==========================================
-# 👇 STOPKA (FOOTER) 👇
+# 👇 STOPKA (FIXED FOOTER) 👇
 # ==========================================
 
 st.markdown("""
     <style>
     .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
         width: 100%;
+        background-color: white;
+        color: #808080; /* Szary kolor tekstu */
         text-align: center;
-        padding-top: 30px;
-        padding-bottom: 20px;
-        margin-top: 50px;
+        padding: 10px;
         border-top: 1px solid #ddd;
-        font-size: 12px;
-        color: #666;
+        z-index: 999; /* Zawsze na wierzchu */
+        font-size: 14px;
     }
-    .footer a {
-        color: #FC4C02;
-        text-decoration: none;
+    
+    /* Dodatkowy margines na dole strony, żeby stopka nie zasłaniała ostatniego wykresu */
+    .main .block-container {
+        padding-bottom: 80px; 
     }
     </style>
     
     <div class="footer">
-        © 2026 <b>IntMonDev</b>. All rights reserved.<br>
-        Powered by Strava API & Streamlit
+        <p style="margin: 0;">© 2026 <b>IntMonDev</b>. All rights reserved. | Powered by Strava API</p>
     </div>
     """, unsafe_allow_html=True)

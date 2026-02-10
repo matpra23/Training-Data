@@ -383,6 +383,6 @@ st.markdown("""
     </style>
     
     <div class="footer">
-        <p style="margin: 0;">© 2026 <b>IntMonDev</b>. All rights reserved. | Powered by Strava API</p>
+        <p style="margin: 0;">© 2026 <b>IntMonDev</b>. All rights reserved. | Powered by Streamlit</p>
     </div>
     """, unsafe_allow_html=True)

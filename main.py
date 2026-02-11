@@ -27,6 +27,67 @@ st.logo(
     icon_image="intmon.png", # Ścieżka do małego logo (opcjonalnie to samo)
 )
 
+import streamlit as st
+import pandas as pd
+# ... reszta importów ...
+
+st.set_page_config(page_title="Trener Pro", page_icon="🏃‍♂️", layout="wide")
+
+# ==========================================
+# 🚦 ROUTER (STEROWANIE STRONAMI) 🚦
+# ==========================================
+
+# Sprawdzamy parametry w adresie URL
+query_params = st.query_params
+
+# --- SCENARIUSZ A: POLITYKA PRYWATNOŚCI ---
+# Jeśli adres to: https://td-analysis.streamlit.app/?strona=prywatnosc
+if query_params.get("strona") == "prywatnosc":
+    st.markdown("""
+    # 🔒 Polityka Prywatności
+    **Ostatnia aktualizacja:** Luty 2026
+    
+    ## 1. Wstęp
+    Ta aplikacja jest wewnętrznym narzędziem trenerskim służącym do analizy postępów sportowych...
+    *(TUTAJ WKLEJ CAŁY TEKST SWOJEJ POLITYKI - możesz używać Markdown)*
+    
+    ## 2. Dane
+    Pobieramy tylko: Imię, Nazwisko, Treningi. Nie udostępniamy ich nikomu.
+    
+    ## 3. Kontakt
+    W razie pytań pisz do dewelopera.
+    
+    ---
+    *Powered by Strava API*
+    """)
+    st.stop() # 🛑 ZATRZYMUJEMY KOD - reszta apki (hasło, wykresy) się nie załaduje!
+
+# --- SCENARIUSZ B: SUKCES PO AUTORYZACJI (Dla Zawodnika) ---
+# Jeśli adres to: https://td-analysis.streamlit.app/?strona=sukces&code=...
+if query_params.get("strona") == "sukces":
+    auth_code = query_params.get("code", ["Błąd"])[0] if isinstance(query_params.get("code"), list) else query_params.get("code")
+    
+    st.balloons() # 🎉 Efektowna animacja
+    st.success("✅ Konto Strava połączone pomyślnie!")
+    
+    st.markdown(f"""
+    ### Co teraz?
+    Skopiuj poniższy kod i wyślij go swojemu trenerowi:
+    """)
+    
+    st.code(auth_code, language="text")
+    
+    st.info("Możesz już zamknąć to okno.")
+    st.stop() # 🛑 ZATRZYMUJEMY KOD
+
+# ==========================================
+# 🔐 TUTAJ ZACZYNA SIĘ NORMALNA APLIKACJA
+# ==========================================
+
+# Tu wklej swoją funkcję render_footer() (zaktualizowaną, zobacz niżej)
+# Tu wklej funkcję check_password()
+# ... i cała reszta kodu
+
 # ==========================================
 # 👇 STOPKA (DEFINICJA FUNKCJI) 👇
 # ==========================================

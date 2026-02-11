@@ -19,7 +19,7 @@ except FileNotFoundError:
 
 DB_FILE = 'zawodnicy.json'
 
-st.set_page_config(page_title="CoachPlus",page_icon="intmon.png", layout="wide")
+st.set_page_config(page_title="CoachPlus Dashboard",page_icon="intmon.png", layout="wide")
 # --- TWOJE LOGO ---
 # icon_image to wersja "zminimalizowana" (jak zwiniesz pasek boczny)
 st.logo(

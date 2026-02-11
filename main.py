@@ -27,6 +27,57 @@ st.logo(
     icon_image="intmon.png", # Ścieżka do małego logo (opcjonalnie to samo)
 )
 
+# ==========================================
+# 👇 STOPKA (DEFINICJA FUNKCJI) 👇
+# ==========================================
+def render_footer():
+    # ⚠️ WAŻNE: Podmień link poniżej na swój własny z GitHuba!
+    LINK_DO_POLITYKI = "https://matpra23.github.io/Training-Data/privacy.html"
+
+    st.markdown(f"""
+        <style>
+        .footer {{
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: #0e1117;  /* Ciemne tło */
+            color: #FAFAFA;             /* Jasny tekst */
+            text-align: center;
+            padding: 10px;
+            border-top: 1px solid #333;
+            z-index: 9999;
+            font-size: 13px;
+        }}
+        
+        .footer a {{
+            color: #FC4C02;
+            text-decoration: none;
+            font-weight: bold;
+        }}
+        
+        .footer a:hover {{
+            text-decoration: underline;
+        }}
+        
+        /* Pusta przestrzeń na dole strony, żeby treść nie wchodziła pod stopkę */
+        .block-container {{
+            padding-bottom: 60px; 
+        }}
+        </style>
+        
+        <div class="footer">
+            <p style="margin: 0;">
+                © 2026 <b>IntMonDev</b>. All rights reserved. 
+                | Powered by Strava API 
+                | <a href="{LINK_DO_POLITYKI}" target="_blank">Polityka Prywatności</a>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# 👇 WYWOŁANIE STOPKI OD RAZU NA STARCIE 👇
+render_footer()
+
 # --- LOGOWANIE DO APLIKACJI ---
 def check_password():
     """Zwraca True jeśli użytkownik jest zalogowany, w przeciwnym razie wyświetla formularz."""
@@ -360,29 +411,46 @@ with tab2:
 # 👇 STOPKA (FIXED FOOTER) 👇
 # ==========================================
 
-st.markdown("""
+LINK_DO_POLITYKI = "https://matpra23.github.io/Training-Data/privacy.html"
+
+st.markdown(f"""
     <style>
-    .footer {
+    .footer {{
         position: fixed;
         left: 0;
         bottom: 0;
         width: 100%;
-        background-color: #0e1117; 
-        color: #FAFAFA;             
+        background-color: #0e1117;  /* Ciemne tło */
+        color: #FAFAFA;             /* Jasny tekst */
         text-align: center;
         padding: 10px;
-        border-top: 1px solid #ddd;
-        z-index: 999; /* Zawsze na wierzchu */
-        font-size: 14px;
-    }
+        border-top: 1px solid #333;
+        z-index: 999;
+        font-size: 13px;
+    }}
     
-    /* Dodatkowy margines na dole strony, żeby stopka nie zasłaniała ostatniego wykresu */
-    .main .block-container {
-        padding-bottom: 80px; 
-    }
+    /* Styl dla linków w stopce */
+    .footer a {{
+        color: #FC4C02; /* Strava Orange */
+        text-decoration: none;
+        font-weight: bold;
+    }}
+    
+    .footer a:hover {{
+        text-decoration: underline;
+    }}
+    
+    /* Pusta przestrzeń na dole strony */
+    .block-container {{
+        padding-bottom: 60px; 
+    }}
     </style>
     
     <div class="footer">
-        <p style="margin: 0;">© 2026 <b>IntMonDev</b>. All rights reserved. | Powered by Streamlit</p>
+        <p style="margin: 0;">
+            © 2026 <b>IntMonDev</b>. All rights reserved. 
+            | Powered by Strava API 
+            | <a href="{LINK_DO_POLITYKI}" target="_blank">Polityka Prywatności</a>
+        </p>
     </div>
     """, unsafe_allow_html=True)

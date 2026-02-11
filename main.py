@@ -93,7 +93,7 @@ if query_params.get("strona") == "sukces":
 # ==========================================
 def render_footer():
     # ⚠️ WAŻNE: Podmień link poniżej na swój własny z GitHuba!
-    LINK_DO_POLITYKI = "https://matpra23.github.io/Training-Data/privacy.html"
+    LINK_DO_POLITYKI = "https://td-analysis.streamlit.app/?strona=prywatnosc"
 
     st.markdown(f"""
         <style>
@@ -421,7 +421,7 @@ with tab2:
     # Generujemy link, który przekieruje na localhost (gdzie widać kod w pasku adresu)
     auth_url = client.authorization_url(
         client_id=MY_CLIENT_ID,
-        redirect_uri='https://matpra23.github.io/Training-Data/',
+        redirect_uri='https://td-analysis.streamlit.app/?strona=sukces',
         scope=['activity:read_all']
     )
     
@@ -466,52 +466,3 @@ with tab2:
                 st.warning("Sprawdź czy kod jest poprawny i czy Client ID/Secret w kodzie są dobre.")
         else:
             st.warning("Wypełnij oba pola (Kod i Nazwa).")
-
-
-# ==========================================
-# 👇 STOPKA (FIXED FOOTER) 👇
-# ==========================================
-
-LINK_DO_POLITYKI = "https://matpra23.github.io/Training-Data/privacy.html"
-
-st.markdown(f"""
-    <style>
-    .footer {{
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: #0e1117;  /* Ciemne tło */
-        color: #FAFAFA;             /* Jasny tekst */
-        text-align: center;
-        padding: 10px;
-        border-top: 1px solid #333;
-        z-index: 999;
-        font-size: 13px;
-    }}
-    
-    /* Styl dla linków w stopce */
-    .footer a {{
-        color: #FC4C02; /* Strava Orange */
-        text-decoration: none;
-        font-weight: bold;
-    }}
-    
-    .footer a:hover {{
-        text-decoration: underline;
-    }}
-    
-    /* Pusta przestrzeń na dole strony */
-    .block-container {{
-        padding-bottom: 60px; 
-    }}
-    </style>
-    
-    <div class="footer">
-        <p style="margin: 0;">
-            © 2026 <b>IntMonDev</b>. All rights reserved. 
-            | Powered by Strava API 
-            | <a href="{LINK_DO_POLITYKI}" target="_blank">Polityka Prywatności</a>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)

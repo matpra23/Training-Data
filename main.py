@@ -31,7 +31,7 @@ import streamlit as st
 import pandas as pd
 # ... reszta importów ...
 
-st.set_page_config(page_title="Trener Pro", page_icon="🏃‍♂️", layout="wide")
+st.set_page_config(page_title="CoachPlus Dashboard", page_icon="intmon.png", layout="wide")
 
 # ==========================================
 # 🚦 ROUTER (STEROWANIE STRONAMI) 🚦

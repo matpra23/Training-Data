@@ -6,93 +6,102 @@ import json
 import os
 import time
 
-# --- KONFIGURACJA ---
+# ==========================================
+# ⚙️ KONFIGURACJA I SETUP
+# ==========================================
+
+st.set_page_config(
+    page_title="CoachPlus Dashboard",
+    page_icon="intmon.png",
+    layout="wide"
+)
+
+# Ładowanie sekretów
 try:
-    # Próba pobrania z sekretów chmurowych (Streamlit Cloud)
     MY_CLIENT_ID = st.secrets["MY_CLIENT_ID"]
     MY_CLIENT_SECRET = st.secrets["MY_CLIENT_SECRET"]
 except FileNotFoundError:
-    # Fallback dla działania lokalnego (jeśli nie masz pliku secrets.toml na dysku)
-    # Możesz tu wpisać na sztywno DO TESTÓW LOKALNYCH, ale nie wysyłaj tego na GitHuba!
-    # Lepiej stwórz lokalnie folder .streamlit/secrets.toml
-    st.error("Brak skonfigurowanych sekretów!")
+    st.error("Brak skonfigurowanych sekretów! (folder .streamlit/secrets.toml)")
 
+# Plik bazy danych
 DB_FILE = 'zawodnicy.json'
 
-st.set_page_config(page_title="CoachPlus Dashboard",page_icon="intmon.png", layout="wide")
-# --- TWOJE LOGO ---
-# icon_image to wersja "zminimalizowana" (jak zwiniesz pasek boczny)
+# Logo aplikacji
 st.logo(
-    "intmon.png",   # Ścieżka do dużego logo
-    icon_image="intmon.png", # Ścieżka do małego logo (opcjonalnie to samo)
+    "intmon.png",
+    icon_image="intmon.png",
 )
 
-import streamlit as st
-import pandas as pd
-# ... reszta importów ...
-
-st.set_page_config(page_title="CoachPlus Dashboard", page_icon="intmon.png", layout="wide")
-
 # ==========================================
-# 🚦 ROUTER (STEROWANIE STRONAMI) 🚦
+# 🚦 ROUTER (STEROWANIE STRONAMI)
 # ==========================================
 
-# Sprawdzamy parametry w adresie URL
 query_params = st.query_params
 
 # --- SCENARIUSZ A: POLITYKA PRYWATNOŚCI ---
-# Jeśli adres to: https://td-analysis.streamlit.app/?strona=prywatnosc
 if query_params.get("strona") == "prywatnosc":
     st.markdown("""
-    # 🔒 Polityka Prywatności
-    **Ostatnia aktualizacja:** Luty 2026
-    
-    ## 1. Wstęp
-    Ta aplikacja jest wewnętrznym narzędziem trenerskim służącym do analizy postępów sportowych...
-    *(TUTAJ WKLEJ CAŁY TEKST SWOJEJ POLITYKI - możesz używać Markdown)*
-    
-    ## 2. Dane
-    Pobieramy tylko: Imię, Nazwisko, Treningi. Nie udostępniamy ich nikomu.
-    
-    ## 3. Kontakt
-    W razie pytań pisz do dewelopera.
-    
-    ---
-    *Powered by Strava API*
-    """)
-    st.stop() # 🛑 ZATRZYMUJEMY KOD - reszta apki (hasło, wykresy) się nie załaduje!
+    # Privacy Policy
+    **Effective Date:** February 11, 2026
 
-# --- SCENARIUSZ B: SUKCES PO AUTORYZACJI (Dla Zawodnika) ---
-# Jeśli adres to: https://td-analysis.streamlit.app/?strona=sukces&code=...
+    This Privacy Policy describes how the **Coaching Dashboard** ("we", "us", or "our") collects, uses, and shares your personal data when you use our application powered by the Strava API.
+
+    ## 1. Introduction
+    This application is an internal tool designed specifically for coaching purposes. Its primary goal is to visualize training data to help athletes and coaches analyze performance and adjust training plans.
+
+    ## 2. Data We Collect
+    We do not collect any data without your explicit consent. When you authorize our application via Strava, we access the following information through the Strava API:
+    * **Profile Information:** First name, last name.
+    * **Activity Data:** Activity type (run, ride, swim, etc.), distance, duration, speed/pace, heart rate, and dates of activities.
+
+    ## 3. How We Use Your Data
+    The data collected is used strictly for the following purposes:
+    * To display training statistics and charts within the application dashboard.
+    * To allow the coach to monitor training loads and progress.
+
+    We **do not** use your data for advertising, marketing, or any commercial purposes unrelated to the coaching service.
+
+    ## 4. Data Sharing and Storage
+    **We do not sell your personal data.**
+
+    The data is processed in real-time or cached temporarily to improve application performance. We do not share your Strava data with any third parties, except as required by law.
+
+    ## 5. Your Rights and Control
+    You have full control over your data:
+    * **Revoke Access:** You can disconnect this application at any time by going to your [Strava Settings > My Apps](https://www.strava.com/settings/apps) and clicking "Revoke Access".
+    * **Data Deletion:** Upon revocation, the application will no longer have access to your Strava account.
+
+    ## 6. Contact Us
+    If you have any questions about this Privacy Policy, please contact the developer:
+
+    **Email:** intmondev@gmail.com
+
+    ---
+    *This application is powered by the Strava API but is not endorsed or certified by Strava.*
+    """)
+    st.stop()
+
+# --- SCENARIUSZ B: SUKCES PO AUTORYZACJI ---
 if query_params.get("strona") == "sukces":
     auth_code = query_params.get("code", ["Błąd"])[0] if isinstance(query_params.get("code"), list) else query_params.get("code")
     
-    st.balloons() # 🎉 Efektowna animacja
+    st.balloons()
     st.success("✅ Konto Strava połączone pomyślnie!")
     
     st.markdown(f"""
     ### Co teraz?
     Skopiuj poniższy kod i wyślij go swojemu trenerowi:
     """)
-    
     st.code(auth_code, language="text")
-    
     st.info("Możesz już zamknąć to okno.")
-    st.stop() # 🛑 ZATRZYMUJEMY KOD
+    st.stop()
 
 # ==========================================
-# 🔐 TUTAJ ZACZYNA SIĘ NORMALNA APLIKACJA
+# 🛠️ FUNKCJE POMOCNICZE
 # ==========================================
 
-# Tu wklej swoją funkcję render_footer() (zaktualizowaną, zobacz niżej)
-# Tu wklej funkcję check_password()
-# ... i cała reszta kodu
-
-# ==========================================
-# 👇 STOPKA (DEFINICJA FUNKCJI) 👇
-# ==========================================
 def render_footer():
-    # ⚠️ WAŻNE: Podmień link poniżej na swój własny z GitHuba!
+    """Wyświetla stopkę na dole strony"""
     LINK_DO_POLITYKI = "https://td-analysis.streamlit.app/?strona=prywatnosc"
 
     st.markdown(f"""
@@ -102,26 +111,22 @@ def render_footer():
             left: 0;
             bottom: 0;
             width: 100%;
-            background-color: #0e1117;  /* Ciemne tło */
-            color: #FAFAFA;             /* Jasny tekst */
+            background-color: #0e1117;
+            color: #FAFAFA;
             text-align: center;
             padding: 10px;
             border-top: 1px solid #333;
             z-index: 9999;
             font-size: 13px;
         }}
-        
         .footer a {{
             color: #FC4C02;
             text-decoration: none;
             font-weight: bold;
         }}
-        
         .footer a:hover {{
             text-decoration: underline;
         }}
-        
-        /* Pusta przestrzeń na dole strony, żeby treść nie wchodziła pod stopkę */
         .block-container {{
             padding-bottom: 60px; 
         }}
@@ -136,48 +141,31 @@ def render_footer():
         </div>
         """, unsafe_allow_html=True)
 
-# 👇 WYWOŁANIE STOPKI OD RAZU NA STARCIE 👇
-render_footer()
-
-# --- LOGOWANIE DO APLIKACJI ---
 def check_password():
-    """Zwraca True jeśli użytkownik jest zalogowany, w przeciwnym razie wyświetla formularz."""
-    
-    # Czy mamy hasło w sekretach?
+    """Obsługa logowania hasłem głównym"""
     if "APP_PASSWORD" not in st.secrets:
         st.error("Nie skonfigurowano hasła w secrets.toml!")
         return False
 
-    # Czy użytkownik już wpisał dobre hasło w tej sesji?
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
 
     if st.session_state.password_correct:
         return True
 
-    # Formularz logowania
     st.markdown("## Dashboard - Logowanie")
     password = st.text_input("Podaj hasło dostępu", type="password")
     
     if st.button("Zaloguj"):
         if password == st.secrets["APP_PASSWORD"]:
             st.session_state.password_correct = True
-            st.rerun()  # Odświeżamy stronę, żeby pokazać treść
+            st.rerun()
         else:
             st.error("Błędne hasło")
             
     return False
 
-# --- BLOKADA APLIKACJI ---
-# Jeśli check_password zwróci False (niezalogowany), zatrzymujemy kod!
-if not check_password():
-    st.stop()
-
-
-# --- FUNKCJE POMOCNICZE ---
-
 def load_db():
-    """Wczytuje bazę zawodników"""
     if not os.path.exists(DB_FILE):
         return {}
     try:
@@ -187,28 +175,35 @@ def load_db():
         return {}
 
 def save_db(db):
-    """Zapisuje bazę zawodników"""
     with open(DB_FILE, 'w') as f:
         json.dump(db, f, indent=4)
 
 def extract_number(value, type_hint="number"):
-    """Pancerna funkcja do wyciągania liczb z dziwnych obiektów Stravy"""
     if value is None: return 0.0
     if isinstance(value, (int, float)): return float(value)
     
-    # Obsługa czasu (sekundy)
     if type_hint == "time":
         if hasattr(value, 'total_seconds'): return value.total_seconds()
         if hasattr(value, 'seconds'): return value.seconds
         
-    # Obsługa jednostek (metry, m/s itp.)
     if hasattr(value, 'magnitude'): return float(value.magnitude)
     if hasattr(value, 'num'): return float(value.num)
     
     try: return float(value)
     except: return 0.0
 
-# --- INTERFEJS APLIKACJI ---
+# ==========================================
+# 🔐 URUCHOMIENIE LOGOWANIA I STOPKI
+# ==========================================
+
+render_footer()
+
+if not check_password():
+    st.stop()
+
+# ==========================================
+# 📱 GŁÓWNY INTERFEJS APLIKACJI
+# ==========================================
 
 st.title("Panel Trenera")
 
@@ -245,7 +240,7 @@ with tab1:
 
             client.access_token = db[wybrany_imie]['access_token']
             
-            # --- KONFIGURACJA FILTRÓW I DAT ---
+            # --- FILTRY ---
             st.write("---")
             st.subheader("Ustawienia analizy")
             
@@ -253,22 +248,12 @@ with tab1:
             start_date = col1.date_input("Filtruj od dnia", value=pd.to_datetime("today") - pd.Timedelta(days=7))
             end_date = col2.date_input("Filtruj do dnia", value=pd.to_datetime("today") + pd.Timedelta(days=1))
 
-            # SŁOWNIK TŁUMACZEŃ (Potrzebny nadal do FILTROWANIA)
             TYPE_MAP = {
-                "Run": "Bieganie",
-                "VirtualRun": "Bieganie",
-                "TrailRun": "Bieganie",
-                "Ride": "Jazda na rowerze",
-                "VirtualRide": "Jazda na rowerze",
-                "EBikeRide": "Jazda na rowerze",
-                "GravelRide": "Jazda na rowerze",
-                "MountainBikeRide": "Jazda na rowerze",
-                "Swim": "Pływanie",
-                "Walk": "Spacer",
-                "Hike": "Wędrówka",
-                "WeightTraining": "Siłownia",
-                "Workout": "Trening",
-                "Yoga": "Joga"
+                "Run": "Bieganie", "VirtualRun": "Bieganie", "TrailRun": "Bieganie",
+                "Ride": "Jazda na rowerze", "VirtualRide": "Jazda na rowerze", "EBikeRide": "Jazda na rowerze",
+                "GravelRide": "Jazda na rowerze", "MountainBikeRide": "Jazda na rowerze",
+                "Swim": "Pływanie", "Walk": "Spacer", "Hike": "Wędrówka",
+                "WeightTraining": "Siłownia", "Workout": "Trening", "Yoga": "Joga"
             }
             
             mozliwe_typy = ["Bieganie", "Jazda na rowerze", "Pływanie", "Spacer", "Siłownia", "Inne"]
@@ -287,24 +272,22 @@ with tab1:
                         nierozpoznane_typy = set()
 
                         for activity in activities:
-                            # 1. POBIERANIE TYPU (Czyste)
+                            # 1. POBIERANIE TYPU
                             raw_type = getattr(activity, 'sport_type', None)
                             if not raw_type:
                                 raw_type = activity.type
                             
-                            # Czyszczenie nazwy (usuwanie root=', ActivityType. itp.)
                             raw_type_str = str(raw_type)\
                                 .replace("root='", "")\
                                 .replace("'", "")\
                                 .replace("ActivityType.", "")
                             
-                            # Tłumaczenie (tylko do filtra!)
                             polski_typ = TYPE_MAP.get(raw_type_str, "Inne")
                             
                             if polski_typ == "Inne":
                                 nierozpoznane_typy.add(raw_type_str)
 
-                            # 2. Przeliczanie danych
+                            # 2. PRZELICZANIE
                             dist_km = round(extract_number(activity.distance) / 1000, 2)
                             duration_min = round(extract_number(activity.moving_time, "time") / 60, 2)
                             avg_hr = round(extract_number(activity.average_heartrate))
@@ -331,8 +314,8 @@ with tab1:
                             
                             data.append({
                                 "Data": activity.start_date_local.strftime("%Y-%m-%d"),
-                                "Typ Polski": polski_typ, # Używamy tylko do filtra, potem wyrzucimy
-                                "Typ": raw_type_str,      # To chcemy wyświetlać (np. VirtualRide)
+                                "Typ Polski": polski_typ,
+                                "Typ": raw_type_str,
                                 "Nazwa": activity.name,
                                 "Dystans (km)": dist_km,
                                 "Czas (min)": duration_min,
@@ -341,35 +324,25 @@ with tab1:
                                 "Link": activity_url
                             })
                         
-                        # --- DIAGNOSTYKA ---
+                        # --- DIAGNOSTYKA I WYNIKI ---
                         if nierozpoznane_typy:
                             st.warning(f"⚠️ Znaleziono nowe typy: {nierozpoznane_typy}")
 
                         if data:
                             df = pd.DataFrame(data)
-                            
-                            # 1. FILTROWANIE (po polskiej nazwie)
                             df_filtered = df[df["Typ Polski"].isin(wybrane_typy)]
                             
                             if df_filtered.empty:
                                 st.warning(f"Brak treningów pasujących do filtra: {wybrane_typy}")
                             else:
-                                # 2. PRZYGOTOWANIE TABELI (Wybieramy kolumny do wyświetlenia)
-                                # Link HTML
                                 df_filtered['Nazwa Treningu'] = df_filtered.apply(
                                     lambda x: f'<a href="{x["Link"]}" target="_blank" style="text-decoration:none; color:#FC4C02; font-weight:bold;">{x["Nazwa"]}</a>', 
                                     axis=1
                                 )
 
-                                # Tu definiujemy co widać. Bierzemy "Typ" (czyli VirtualRide), a nie "Typ Polski"
                                 final_df = df_filtered[[
-                                    'Data', 
-                                    'Typ',            # <-- To jest ten oryginalny (VirtualRide)
-                                    'Nazwa Treningu', 
-                                    'Dystans (km)', 
-                                    'Czas (min)', 
-                                    'Tętno', 
-                                    'Tempo'
+                                    'Data', 'Typ', 'Nazwa Treningu', 
+                                    'Dystans (km)', 'Czas (min)', 'Tętno', 'Tempo'
                                 ]]
                                 
                                 c1, c2, c3 = st.columns(3)
@@ -383,13 +356,8 @@ with tab1:
                                     unsafe_allow_html=True
                                 )
                                 
-                                # --- WYKRES TĘTNA (POPRAWIONY) ---
-                                # Sprawdzamy tylko czy mamy dane o tętnie (usuwamy warunek len == 1)
+                                # Wykres tętna
                                 if "Tętno" in final_df.columns and final_df["Tętno"].sum() > 0:
-                                    
-                                    # INTELIGENTNE KOLOROWANIE:
-                                    # Jeśli wybrano wiele sportów -> koloruj wg typu (np. Rower vs Bieg)
-                                    # Jeśli wybrano jeden sport -> koloruj wg dystansu (cieniowanie)
                                     if len(wybrane_typy) > 1:
                                         kolor_wg = "Typ" 
                                         tytul_wykresu = "Średnie tętno (Podział na sporty)"
@@ -398,15 +366,11 @@ with tab1:
                                         tytul_wykresu = f"Średnie tętno ({wybrane_typy[0]})"
 
                                     fig = px.bar(
-                                        final_df, 
-                                        x="Data", 
-                                        y="Tętno", 
-                                        title=tytul_wykresu, 
-                                        color=kolor_wg,
-                                        hover_data=["Nazwa Treningu", "Tempo"] # Co widać po najechaniu myszką
+                                        final_df, x="Data", y="Tętno", 
+                                        title=tytul_wykresu, color=kolor_wg,
+                                        hover_data=["Nazwa Treningu", "Tempo"]
                                     )
                                     st.plotly_chart(fig)
-                                    
                         else:
                             st.warning("Brak treningów w tym okresie.")
                             
@@ -418,7 +382,6 @@ with tab2:
     st.header("Dodaj nowego podopiecznego")
     
     client = Client()
-    # Generujemy link, który przekieruje na localhost (gdzie widać kod w pasku adresu)
     auth_url = client.authorization_url(
         client_id=MY_CLIENT_ID,
         redirect_uri='https://td-analysis.streamlit.app/?strona=sukces',
@@ -444,14 +407,12 @@ with tab2:
     if st.button("Zapisz zawodnika w bazie"):
         if code_input and name_input:
             try:
-                # Wymiana kodu na token
                 token_response = client.exchange_code_for_token(
                     client_id=MY_CLIENT_ID,
                     client_secret=MY_CLIENT_SECRET,
                     code=code_input
                 )
                 
-                # Zapis do bazy
                 db = load_db()
                 db[name_input] = {
                     'access_token': token_response['access_token'],

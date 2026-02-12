@@ -198,8 +198,8 @@ def extract_number(value, type_hint="number"):
 
 render_footer()
 
-if not check_password():
-    st.stop()
+# if not check_password():
+#     st.stop()
 
 # ==========================================
 # 📱 GŁÓWNY INTERFEJS APLIKACJI

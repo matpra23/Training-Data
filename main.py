@@ -166,13 +166,37 @@ def check_password():
     return False
 
 def load_db():
-    if not os.path.exists(DB_FILE):
-        return {}
-    try:
-        with open(DB_FILE, 'r') as f:
-            return json.load(f)
-    except:
-        return {}
+    """Wczytuje bazę. Jeśli pusta/brak pliku, ładuje Master Usera z sekretów."""
+    db = {}
+    
+    # 1. Próba wczytania z pliku (jeśli istnieje)
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, 'r') as f:
+                db = json.load(f)
+        except:
+            pass # Jeśli błąd pliku, ignorujemy i lecimy dalej
+
+    # 2. Sprawdzenie czy mamy Master Usera w sekretach (Fallback)
+    # Jeśli baza jest pusta LUB nie ma w niej Trenera, a mamy go w sekretach -> dodajemy go
+    if "master_user" in st.secrets:
+        master = st.secrets["master_user"]
+        master_name = master["name"]
+        
+        if master_name not in db:
+            db[master_name] = {
+                'access_token': master["access_token"],
+                'refresh_token': master["refresh_token"],
+                'expires_at': master["expires_at"]
+            }
+            # Opcjonalnie: zapisujemy to od razu do pliku, żeby działało w tej sesji
+            try:
+                with open(DB_FILE, 'w') as f:
+                    json.dump(db, f, indent=4)
+            except:
+                pass
+
+    return db
 
 def save_db(db):
     with open(DB_FILE, 'w') as f:

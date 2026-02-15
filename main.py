@@ -419,8 +419,8 @@ with tab2:
     st.markdown("### Krok 2: Wklej dane")
     st.markdown("""
     1. Zawodnik klika link i loguje się.
-    2. Zostaje przekierowany na stronę błędu ("Witryna nieosiągalna").
-    3. Kopiuje z paska adresu przeglądarki fragment po **code=** (np. `a1b2c3...`).
+    2. Zostaje przekierowany na stronę sukcesu.
+    3. Kopiuje z pola kod.
     4. Wysyła ten kod Tobie.
     """)
     

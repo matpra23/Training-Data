@@ -451,3 +451,12 @@ with tab2:
                 st.warning("Sprawdź czy kod jest poprawny i czy Client ID/Secret w kodzie są dobre.")
         else:
             st.warning("Wypełnij oba pola (Kod i Nazwa).")
+
+# --- UKRYWANIE MENU STREAMLIT ---
+hide_menu_style = """
+    <style>
+    #MainMenu {visibility: hidden;} /* Ukrywa hamburger menu z linkiem do GitHuba */
+    header {visibility: hidden;}    /* Ukrywa górny pasek z przyciskiem Deploy */
+    </style>
+"""
+st.markdown(hide_menu_style, unsafe_allow_html=True)

@@ -398,7 +398,7 @@ with tab1:
                                         y="Dystans (km)", 
                                         title=tytul_wykresu, 
                                         color=kolor_wg,
-                                        hover_data=["Nazwa Treningu", "Czas (min)", "Tempo"] # Co widać po najechaniu myszką
+                                        hover_data=["Nazwa Treningu", "Czas (min)", "Tempo", "Tętno"] 
                                     )
                                     st.plotly_chart(fig)
                         else:

@@ -280,12 +280,29 @@ with tab1:
                 "WeightTraining": "Siłownia", "Workout": "Trening", "Yoga": "Joga"
             }
             
-            mozliwe_typy = ["Bieganie", "Jazda na rowerze", "Pływanie", "Spacer", "Siłownia", "Inne"]
-            wybrane_typy = st.multiselect(
-                "Wybierz typy aktywności do analizy:",
-                options=mozliwe_typy,
-                default=["Bieganie", "Jazda na rowerze", "Pływanie"]
-            )
+            # --- CHECKBOXY ZAMIAST MULTISELECTA ---
+            st.markdown("**Wybierz typy aktywności do analizy:**")
+            
+            # Tworzymy 3 kolumny, żeby ułożyć checkboxy w zgrabnej siatce
+            c1, c2, c3 = st.columns(3)
+            
+            wybrane_typy = []
+            
+            # value=True oznacza, że domyślnie są zaznaczone
+            if c1.checkbox("Bieganie", value=True): 
+                wybrane_typy.append("Bieganie")
+            if c2.checkbox("Jazda na rowerze", value=True): 
+                wybrane_typy.append("Jazda na rowerze")
+            if c3.checkbox("Pływanie", value=True): 
+                wybrane_typy.append("Pływanie")
+                
+            # value=False oznacza, że domyślnie są odznaczone
+            if c1.checkbox("Spacer", value=False): 
+                wybrane_typy.append("Spacer")
+            if c2.checkbox("Siłownia", value=False): 
+                wybrane_typy.append("Siłownia")
+            if c3.checkbox("Inne", value=False): 
+                wybrane_typy.append("Inne")
 
             if st.button("Pobierz i filtruj treningi"):
                 with st.spinner('Pobieram i przetwarzam dane...'):

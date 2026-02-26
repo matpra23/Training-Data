@@ -277,18 +277,20 @@ with tab1:
                 "Ride": "Jazda na rowerze", "VirtualRide": "Jazda na rowerze", "EBikeRide": "Jazda na rowerze",
                 "GravelRide": "Jazda na rowerze", "MountainBikeRide": "Jazda na rowerze",
                 "Swim": "Pływanie", "Walk": "Spacer", "Hike": "Wędrówka",
-                "WeightTraining": "Siłownia", "Workout": "Trening", "Yoga": "Joga"
+                "WeightTraining": "Siłownia", "Workout": "Trening", "Yoga": "Joga",
+                "Rowing": "Wiosłowanie", "VirtualRow": "Wiosłowanie",
+                "NordicSki": "Bieganie na nartach", "BackcountrySki": "Bieganie na nartach", "RollerSki": "Bieganie na nartach"
             }
             
             # --- CHECKBOXY ZAMIAST MULTISELECTA ---
             st.markdown("**Wybierz typy aktywności do analizy:**")
             
-            # Tworzymy 3 kolumny, żeby ułożyć checkboxy w zgrabnej siatce
+            # Tworzymy 3 kolumny
             c1, c2, c3 = st.columns(3)
             
             wybrane_typy = []
             
-            # value=True oznacza, że domyślnie są zaznaczone
+            # Rząd 1 (Główne - domyślnie zaznaczone)
             if c1.checkbox("Bieganie", value=True): 
                 wybrane_typy.append("Bieganie")
             if c2.checkbox("Jazda na rowerze", value=True): 
@@ -296,12 +298,18 @@ with tab1:
             if c3.checkbox("Pływanie", value=True): 
                 wybrane_typy.append("Pływanie")
                 
-            # value=False oznacza, że domyślnie są odznaczone
+            # Rząd 2 (Nowe sporty)
+            if c1.checkbox("Bieganie na nartach", value=False): 
+                wybrane_typy.append("Bieganie na nartach")
+            if c2.checkbox("Wiosłowanie", value=False): 
+                wybrane_typy.append("Wiosłowanie")
+            if c3.checkbox("Siłownia", value=False): 
+                wybrane_typy.append("Siłownia")
+                
+            # Rząd 3 (Pozostałe)
             if c1.checkbox("Spacer", value=False): 
                 wybrane_typy.append("Spacer")
-            if c2.checkbox("Siłownia", value=False): 
-                wybrane_typy.append("Siłownia")
-            if c3.checkbox("Inne", value=False): 
+            if c2.checkbox("Inne", value=False): 
                 wybrane_typy.append("Inne")
 
             if st.button("Pobierz i filtruj treningi"):

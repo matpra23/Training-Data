@@ -467,27 +467,46 @@ with tab1:
                                         "Strefa": list(hr_zones_aggregated.keys()),
                                         "Czas (min)": [round(v / 60, 1) for v in hr_zones_aggregated.values()]
                                     })
+                                    
+                                    # Sztywne przypisanie kolorów do stref (najbezpieczniejsza metoda)
+                                    kolory_stref = {
+                                        "Z1 (Regeneracja)": "#9E9E9E",
+                                        "Z2 (Wytrzymałość)": "#2196F3",
+                                        "Z3 (Tempo)": "#4CAF50",
+                                        "Z4 (Próg)": "#FF9800",
+                                        "Z5 (Anaerobowa)": "#F44336"
+                                    }
 
-                                    strava_colors = ['#9E9E9E', '#2196F3', '#4CAF50', '#FF9800', '#F44336']
                                     col_pie, col_bar = st.columns(2)
 
                                     with col_pie:
                                         fig_pie = px.pie(
-                                            df_zones, names="Strefa", values="Czas (min)",
-                                            hole=0.4, color="Strefa", color_discrete_sequence=strava_colors,
+                                            df_zones, 
+                                            names="Strefa", 
+                                            values="Czas (min)",
+                                            hole=0.4, 
+                                            color="Strefa", 
+                                            color_discrete_map=kolory_stref, # Używamy mapy
+                                            category_orders={"Strefa": list(kolory_stref.keys())}, # Wymuszamy kolejność
                                             title="Proporcje spędzonego czasu"
                                         )
-                                        fig_pie.update_traces(textposition='inside', textinfo='percent')
+                                        # Wyłączamy sortowanie po wielkości (dzięki temu legenda jest Z1 -> Z5)
+                                        fig_pie.update_traces(sort=False, textposition='inside', textinfo='percent')
                                         st.plotly_chart(fig_pie, use_container_width=True)
 
                                     with col_bar:
                                         fig_bar = px.bar(
-                                            df_zones, x="Czas (min)", y="Strefa", orientation='h',
-                                            color="Strefa", color_discrete_sequence=strava_colors,
-                                            title="Całkowity czas w minutach", text="Czas (min)"
+                                            df_zones, 
+                                            x="Czas (min)", 
+                                            y="Strefa", 
+                                            orientation='h',
+                                            color="Strefa", 
+                                            color_discrete_map=kolory_stref, # Używamy tej samej mapy
+                                            title="Całkowity czas w minutach", 
+                                            text="Czas (min)"
                                         )
                                         fig_bar.update_layout(
-                                            yaxis={'categoryorder':'array', 'categoryarray': list(reversed(df_zones["Strefa"]))},
+                                            yaxis={'categoryorder':'array', 'categoryarray': list(reversed(kolory_stref.keys()))},
                                             showlegend=False
                                         )
                                         st.plotly_chart(fig_bar, use_container_width=True)

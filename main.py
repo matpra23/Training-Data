@@ -319,6 +319,15 @@ with tab1:
                         
                         data = []
                         nierozpoznane_typy = set()
+                        
+                        # Dodajemy słownik na strefy tętna (czasy w sekundach)
+                        hr_zones_aggregated = {
+                            "Z1 (Regeneracja)": 0,
+                            "Z2 (Wytrzymałość)": 0,
+                            "Z3 (Tempo)": 0,
+                            "Z4 (Próg)": 0,
+                            "Z5 (Anaerobowa)": 0
+                        }
 
                         for activity in activities:
                             # 1. POBIERANIE TYPU
@@ -375,6 +384,22 @@ with tab1:
                                 "Tempo": pace_str,
                                 "Link": activity_url
                             })
+                            # --- POBIERANIE STREF TĘTNA ---
+                            # Pobieramy zawsze, jeśli trening w ogóle ma zapisane tętno
+                            if getattr(activity, 'has_heartrate', False):
+                                try:
+                                    zones = client.get_activity_zones(activity.id)
+                                    for z in zones:
+                                        if z.type == 'heartrate' and getattr(z, 'distribution_buckets', None):
+                                            buckets = z.distribution_buckets
+                                            if len(buckets) >= 5:
+                                                hr_zones_aggregated["Z1 (Regeneracja)"] += buckets[0].time
+                                                hr_zones_aggregated["Z2 (Wytrzymałość)"] += buckets[1].time
+                                                hr_zones_aggregated["Z3 (Tempo)"] += buckets[2].time
+                                                hr_zones_aggregated["Z4 (Próg)"] += buckets[3].time
+                                                hr_zones_aggregated["Z5 (Anaerobowa)"] += buckets[4].time
+                                except Exception as e:
+                                    pass # Ignorujemy błędy (np. brak premium odrzuci to zapytanie)
                         
                         # --- DIAGNOSTYKA I WYNIKI ---
                         if nierozpoznane_typy:
@@ -414,7 +439,7 @@ with tab1:
                                     # INTELIGENTNE KOLOROWANIE:
                                     if len(wybrane_typy) > 1:
                                         kolor_wg = "Typ" 
-                                        tytul_wykresu = "Dzienny dystans (Podział na sporty)"
+                                        tytul_wykresu = "Dzienny dystans"
                                     else:
                                         # Skoro na osi Y jest dystans, pokolorujmy słupki na podstawie intensywności (Tętna)
                                         kolor_wg = "Tętno" 
@@ -429,6 +454,46 @@ with tab1:
                                         hover_data=["Nazwa Treningu", "Czas (min)", "Tempo", "Tętno"] 
                                     )
                                     st.plotly_chart(fig)
+                                
+                                # ==========================================
+                                # WIZUALIZACJA STREF TĘTNA
+                                # ==========================================
+                                st.write("---")
+                                st.subheader("Analiza stref tętna")
+
+                                if sum(hr_zones_aggregated.values()) > 0:
+                                    # Mamy dane -> Rysujemy wykresy
+                                    df_zones = pd.DataFrame({
+                                        "Strefa": list(hr_zones_aggregated.keys()),
+                                        "Czas (min)": [round(v / 60, 1) for v in hr_zones_aggregated.values()]
+                                    })
+
+                                    strava_colors = ['#9E9E9E', '#2196F3', '#4CAF50', '#FF9800', '#F44336']
+                                    col_pie, col_bar = st.columns(2)
+
+                                    with col_pie:
+                                        fig_pie = px.pie(
+                                            df_zones, names="Strefa", values="Czas (min)",
+                                            hole=0.4, color="Strefa", color_discrete_sequence=strava_colors,
+                                            title="Proporcje spędzonego czasu"
+                                        )
+                                        fig_pie.update_traces(textposition='inside', textinfo='percent')
+                                        st.plotly_chart(fig_pie, use_container_width=True)
+
+                                    with col_bar:
+                                        fig_bar = px.bar(
+                                            df_zones, x="Czas (min)", y="Strefa", orientation='h',
+                                            color="Strefa", color_discrete_sequence=strava_colors,
+                                            title="Całkowity czas w minutach", text="Czas (min)"
+                                        )
+                                        fig_bar.update_layout(
+                                            yaxis={'categoryorder':'array', 'categoryarray': list(reversed(df_zones["Strefa"]))},
+                                            showlegend=False
+                                        )
+                                        st.plotly_chart(fig_bar, use_container_width=True)
+                                else:
+                                    # Brak danych (brak tętna lub brak konta Premium)
+                                    st.info("ℹ️ Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")
                         else:
                             st.warning("Brak treningów w tym okresie.")
                             

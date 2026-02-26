@@ -290,15 +290,15 @@ with tab1:
             
             wybrane_typy = []
             
-            # Rząd 1 (Główne - domyślnie zaznaczone)
-            if c1.checkbox("Bieganie", value=True): 
+            # Rząd 1
+            if c1.checkbox("Bieganie", value=False): 
                 wybrane_typy.append("Bieganie")
-            if c2.checkbox("Jazda na rowerze", value=True): 
+            if c2.checkbox("Jazda na rowerze", value=False): 
                 wybrane_typy.append("Jazda na rowerze")
-            if c3.checkbox("Pływanie", value=True): 
+            if c3.checkbox("Pływanie", value=False): 
                 wybrane_typy.append("Pływanie")
                 
-            # Rząd 2 (Nowe sporty)
+            # Rząd 2
             if c1.checkbox("Bieganie na nartach", value=False): 
                 wybrane_typy.append("Bieganie na nartach")
             if c2.checkbox("Wiosłowanie", value=False): 
@@ -306,7 +306,7 @@ with tab1:
             if c3.checkbox("Siłownia", value=False): 
                 wybrane_typy.append("Siłownia")
                 
-            # Rząd 3 (Pozostałe)
+            # Rząd 3
             if c1.checkbox("Spacer", value=False): 
                 wybrane_typy.append("Spacer")
             if c2.checkbox("Inne", value=False): 
@@ -345,7 +345,8 @@ with tab1:
                             avg_speed_ms = extract_number(activity.average_speed)
                             pace_str = "-"
                             if avg_speed_ms > 0:
-                                if polski_typ == "Bieganie":
+                                # Zmiana tutaj: sprawdzamy czy to Bieganie LUB Bieganie na nartach
+                                if polski_typ in ["Bieganie", "Bieganie na nartach"]:
                                     pace_decimal = (1000 / avg_speed_ms) / 60
                                     p_min = int(pace_decimal)
                                     p_sec = int((pace_decimal - p_min) * 60)
@@ -358,6 +359,8 @@ with tab1:
                                     p_min = int(pace_decimal)
                                     p_sec = int((pace_decimal - p_min) * 60)
                                     pace_str = f"{p_min}:{p_sec:02d} /100m"
+                                # Opcjonalnie: wiosłowanie zazwyczaj podaje się na 500m, 
+                                # ale na razie zostawiamy bazowe ustawienia dla reszty.
 
                             activity_url = f"https://www.strava.com/activities/{activity.id}"
                             

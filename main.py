@@ -587,7 +587,7 @@ with tab2:
 hide_menu_style = """
     <style>
     #MainMenu {visibility: hidden;} /* Ukrywa hamburger menu z linkiem do GitHuba */
-    header {visibility: hidden;}    /* Ukrywa górny pasek z przyciskiem Deploy */
+    .stAppDeployButton {display: none;} /* Ukrywa TYLKO przycisk Deploy, chroniąc logo */
     </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)

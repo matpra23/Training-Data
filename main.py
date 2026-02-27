@@ -280,9 +280,27 @@ with tab1:
         st.info("Baza jest pusta. Przejdź do zakładki 'Dodaj Zawodnika', aby kogoś dodać.")
     else:
         imiona = list(db.keys())
-        wybrany_imie = st.selectbox("Wybierz podopiecznego:", imiona)
         
-        if wybrany_imie:
+        # Tworzymy dwie kolumny (szeroka na listę, wąska na przycisk)
+        col_lista, col_kosz = st.columns([4, 1])
+        
+        with col_lista:
+            wybrany_imie = st.selectbox("Wybierz podopiecznego:", imiona)
+            
+        with col_kosz:
+            # Dodajemy puste odstępy, żeby przycisk zrównał się w dół z listą
+            st.write("")
+            st.write("")
+            # Przycisk type="primary" będzie ładnie wyróżniony na czerwono
+            if st.button("🗑️ Usuń", type="primary", use_container_width=True):
+                # Usuwamy zawodnika z bazy
+                del db[wybrany_imie]
+                # Zapisujemy plik (to automatycznie WYŚLE NOWY BACKUP na Discorda!)
+                save_db(db)
+                # Natychmiastowe odświeżenie strony, żeby lista się zaktualizowała
+                st.rerun()
+        
+        if wybrany_imie and wybrany_imie in db:
             zawodnik_data = db[wybrany_imie]
             client = Client()
             

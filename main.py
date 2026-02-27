@@ -217,15 +217,17 @@ def save_db(db):
         json.dump(db, f, indent=4)
         
     # 2. Automatyczny backup na Discorda
+    # 2. Automatyczny backup na Discorda
     if "DISCORD_WEBHOOK" in st.secrets:
         try:
             with open(DB_FILE, 'rb') as f:
-                payload = {"content": "🔄 **Backup bazy zawodników!** (Dodano kogoś lub odświeżono token)"}
+                payload = {"content": "🔄 **Backup bazy zawodników!**"}
                 files = {"file": ("zawodnicy.json", f, "application/json")}
                 requests.post(st.secrets["DISCORD_WEBHOOK"], data=payload, files=files)
         except Exception as e:
-            # Używamy pass, żeby w razie problemów z Discordem nie "wywalić" użytkownikowi strony błędem
-            pass
+            # ZMIENIONE: Zamiast 'pass', wymuszamy pokazanie błędu na ekranie
+            import streamlit as st
+            st.error(f"Błąd Discorda: {e}")
 
 def extract_number(value, type_hint="number"):
     if value is None: return 0.0

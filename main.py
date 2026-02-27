@@ -135,7 +135,7 @@ def render_footer():
         <div class="footer">
             <p style="margin: 0;">
                 © 2026 <b>IntMonDev</b>. All rights reserved. 
-                | Powered by Strava API 
+                | Created using Strava API 
                 | <a href="{LINK_DO_POLITYKI}" target="_blank">Polityka Prywatności</a>
             </p>
         </div>

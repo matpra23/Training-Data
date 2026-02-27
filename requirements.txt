@@ -2,3 +2,4 @@ streamlit
 stravalib
 pandas
 plotly
+requests

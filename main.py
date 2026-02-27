@@ -5,6 +5,7 @@ import plotly.express as px
 import json
 import os
 import time
+import requests
 
 # ==========================================
 # ⚙️ KONFIGURACJA I SETUP
@@ -211,8 +212,20 @@ def load_db():
     return db
 
 def save_db(db):
+    # 1. Zapis lokalny (wymagany do działania obecnej sesji Streamlita)
     with open(DB_FILE, 'w') as f:
         json.dump(db, f, indent=4)
+        
+    # 2. Automatyczny backup na Discorda
+    if "DISCORD_WEBHOOK" in st.secrets:
+        try:
+            with open(DB_FILE, 'rb') as f:
+                payload = {"content": "🔄 **Backup bazy zawodników!** (Dodano kogoś lub odświeżono token)"}
+                files = {"file": ("zawodnicy.json", f, "application/json")}
+                requests.post(st.secrets["DISCORD_WEBHOOK"], data=payload, files=files)
+        except Exception as e:
+            # Używamy pass, żeby w razie problemów z Discordem nie "wywalić" użytkownikowi strony błędem
+            pass
 
 def extract_number(value, type_hint="number"):
     if value is None: return 0.0

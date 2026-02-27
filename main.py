@@ -229,7 +229,6 @@ def save_db(db):
                 requests.post(st.secrets["DISCORD_WEBHOOK"], data=payload, files=files)
         except Exception as e:
             # ZMIENIONE: Zamiast 'pass', wymuszamy pokazanie błędu na ekranie
-            import streamlit as st
             st.error(f"Błąd Discorda: {e}")
 
 def extract_number(value, type_hint="number"):

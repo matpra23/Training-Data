@@ -29,6 +29,7 @@ DB_FILE = 'zawodnicy.json'
 # Logo aplikacji
 st.logo(
     "intmon.png",
+    link="https://td-analysis.streamlit.app/",
     icon_image="intmon.png",
 )
 

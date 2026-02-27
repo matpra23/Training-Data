@@ -24,6 +24,9 @@ try:
 except FileNotFoundError:
     st.error("Brak skonfigurowanych sekretów! (folder .streamlit/secrets.toml)")
 
+# --- WYCISZENIE OSTRZEŻEŃ STRAVALIB ---
+os.environ["SILENCE_TOKEN_WARNINGS"] = "true"
+
 # Plik bazy danych
 DB_FILE = 'zawodnicy.json'
 

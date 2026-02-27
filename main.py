@@ -29,7 +29,6 @@ DB_FILE = 'zawodnicy.json'
 # Logo aplikacji
 st.logo(
     "intmon.png",
-    link="https://td-analysis.streamlit.app/",
     icon_image="intmon.png",
 )
 
@@ -587,7 +586,7 @@ with tab2:
 hide_menu_style = """
     <style>
     #MainMenu {visibility: hidden;} /* Ukrywa hamburger menu z linkiem do GitHuba */
-    .stAppDeployButton {display: none;} /* Ukrywa TYLKO przycisk Deploy, chroniąc logo */
+    header {visibility: hidden;}    /* Ukrywa górny pasek z przyciskiem Deploy */
     </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)

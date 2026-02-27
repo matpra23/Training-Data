@@ -57,7 +57,7 @@ if query_params.get("strona") == "prywatnosc":
     ## 3. How We Use Your Data
     The data collected is used strictly for the following purposes:
     * To display training statistics and charts within the application dashboard.
-    * To allow the coach to monitor training loads and progress.
+    * To allow an authorized coach to monitor training loads and progress.
 
     We **do not** use your data for advertising, marketing, or any commercial purposes unrelated to the coaching service.
 

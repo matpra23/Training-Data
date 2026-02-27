@@ -40,6 +40,12 @@ query_params = st.query_params
 
 # --- SCENARIUSZ A: POLITYKA PRYWATNOŚCI ---
 if query_params.get("strona") == "prywatnosc":
+
+    # Przycisk powrotu
+    if st.button("Wróć do aplikacji"):
+        st.query_params.clear() # Czyści link z "?strona=prywatnosc"
+        st.rerun()              # Odświeża stronę do stanu początkowego
+
     st.markdown("""
     # Privacy Policy
     **Effective Date:** February 11, 2026
@@ -83,6 +89,12 @@ if query_params.get("strona") == "prywatnosc":
 
 # --- SCENARIUSZ B: SUKCES PO AUTORYZACJI ---
 if query_params.get("strona") == "sukces":
+
+    # Przycisk powrotu
+    if st.button("Wróć do aplikacji"):
+        st.query_params.clear() # Czyści link z "?strona=sukces"
+        st.rerun()              # Odświeża stronę do stanu początkowego
+
     auth_code = query_params.get("code", ["Błąd"])[0] if isinstance(query_params.get("code"), list) else query_params.get("code")
     
     st.balloons()

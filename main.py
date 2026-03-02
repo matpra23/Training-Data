@@ -207,17 +207,25 @@ def load_db():
         st.error(f"Błąd odczytu z bazy chmurowej: {e}")
     return db
 
-def save_db(db):
+def save_db(db, zmieniony_zawodnik=None):
     """Zapisuje zaktualizowane tokeny w chmurze Firebase"""
     try:
         # Zapisujemy lub aktualizujemy dane każdego zawodnika w kolekcji
         for imie, data in db.items():
             fire_db.collection('zawodnicy').document(imie).set(data)
             
-        # Zostawiamy powiadomienie na Discordzie (tylko wiadomość tekstowa, bez pliku)
+        # Zostawiamy powiadomienie na Discordzie ze szczegółami
         if "DISCORD_WEBHOOK" in st.secrets:
-            payload = {"content": "☁️ **Firebase Zaktualizowany!** (Odświeżono token lub dodano zawodnika)"}
+            if zmieniony_zawodnik:
+                wiadomosc = f"☁️ **Firebase Zaktualizowany!** (Dodano/odświeżono zawodnika: **{zmieniony_zawodnik}**)"
+            else:
+                wiadomosc = "☁️ **Firebase Zaktualizowany!** (Zapisano bazę)"
+                
+            payload = {"content": wiadomosc}
             requests.post(st.secrets["DISCORD_WEBHOOK"], json=payload)
+            
+    except Exception as e:
+        st.error(f"🚨 Błąd zapisu do bazy chmurowej: {e}")
             
     except Exception as e:
         st.error(f"🚨 Błąd zapisu do bazy chmurowej: {e}")
@@ -265,7 +273,8 @@ with tab1:
         wybrany_imie = st.selectbox("Wybierz podopiecznego:", imiona)
         
         if wybrany_imie and wybrany_imie in db:
-            zawodnik_data = db[wybrany_imie]
+            db[wybrany_imie]['expires_at'] = refresh_response['expires_at']
+            save_db(db, zmieniony_zawodnik=wybrany_imie)
             
             # --- BEZPIECZNA STREFA USUWANIA UŻYTKOWNIKÓW---
             with st.expander("⚙️ Zarządzanie zawodnikiem"):
@@ -596,7 +605,7 @@ with tab2:
                     'refresh_token': token_response['refresh_token'],
                     'expires_at': token_response['expires_at']
                 }
-                save_db(db)
+                save_db(db, zmieniony_zawodnik=name_input)
                 st.success(f"Sukces! Dodano zawodnika: {name_input}")
                 
             except Exception as e:

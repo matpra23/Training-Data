@@ -1,6 +1,6 @@
 #Dane wrażliwe
 .env
-zawodnicy.json
+*.json
 
 #Opcja uruchomienia aplikacji
 launch.txt
@@ -12,3 +12,4 @@ generator_tokena.py
 __pycache__/
 
 .devcontainer
+

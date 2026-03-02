@@ -244,6 +244,25 @@ def extract_number(value, type_hint="number"):
     try: return float(value)
     except: return 0.0
 
+def parse_token_response(response):
+    """Bezpiecznie wyciąga tokeny, niezależnie od tego, czy stravalib zwróci słownik, czy obiekt."""
+    # Jeśli stravalib zwróci krotkę (w niektórych wersjach tak jest)
+    if isinstance(response, tuple):
+        response = response[0]
+        
+    if isinstance(response, dict):
+        return {
+            'access_token': response.get('access_token'),
+            'refresh_token': response.get('refresh_token'),
+            'expires_at': response.get('expires_at')
+        }
+    else:
+        return {
+            'access_token': getattr(response, 'access_token', None),
+            'refresh_token': getattr(response, 'refresh_token', None),
+            'expires_at': getattr(response, 'expires_at', None)
+        }
+
 # ==========================================
 # 🔐 URUCHOMIENIE LOGOWANIA I STOPKI
 # ==========================================
@@ -273,8 +292,7 @@ with tab1:
         wybrany_imie = st.selectbox("Wybierz podopiecznego:", imiona)
         
         if wybrany_imie and wybrany_imie in db:
-            db[wybrany_imie]['expires_at'] = refresh_response['expires_at']
-            save_db(db, zmieniony_zawodnik=wybrany_imie)
+            zawodnik_data = db[wybrany_imie]
             
             # --- BEZPIECZNA STREFA USUWANIA UŻYTKOWNIKÓW---
             with st.expander("⚙️ Zarządzanie zawodnikiem"):
@@ -299,10 +317,15 @@ with tab1:
                         client_secret=MY_CLIENT_SECRET,
                         refresh_token=zawodnik_data['refresh_token']
                     )
-                    db[wybrany_imie]['access_token'] = refresh_response['access_token']
-                    db[wybrany_imie]['refresh_token'] = refresh_response['refresh_token']
-                    db[wybrany_imie]['expires_at'] = refresh_response['expires_at']
-                    save_db(db)
+                    
+                    # Bezpieczne wyciągnięcie danych
+                    nowe_dane = parse_token_response(refresh_response)
+                    
+                    db[wybrany_imie]['access_token'] = nowe_dane['access_token']
+                    db[wybrany_imie]['refresh_token'] = nowe_dane['refresh_token']
+                    db[wybrany_imie]['expires_at'] = nowe_dane['expires_at']
+                    
+                    save_db(db, zmieniony_zawodnik=wybrany_imie)
                 except Exception as e:
                     st.error(f"Nie udało się odświeżyć tokena: {e}")
 
@@ -599,11 +622,14 @@ with tab2:
                     code=code_input
                 )
                 
+                # Bezpieczne wyciągnięcie danych
+                nowe_dane = parse_token_response(token_response)
+                
                 db = load_db()
                 db[name_input] = {
-                    'access_token': token_response['access_token'],
-                    'refresh_token': token_response['refresh_token'],
-                    'expires_at': token_response['expires_at']
+                    'access_token': nowe_dane['access_token'],
+                    'refresh_token': nowe_dane['refresh_token'],
+                    'expires_at': nowe_dane['expires_at']
                 }
                 save_db(db, zmieniony_zawodnik=name_input)
                 st.success(f"Sukces! Dodano zawodnika: {name_input}")

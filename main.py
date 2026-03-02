@@ -5,7 +5,11 @@ import plotly.express as px
 import json
 import os
 import time
+
+
 import requests
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 # ==========================================
 # ⚙️ KONFIGURACJA I SETUP
@@ -35,6 +39,16 @@ st.logo(
     "intmon.png",
     icon_image="intmon.png",
 )
+
+# --- INICJALIZACJA BAZY FIREBASE ---
+if not firebase_admin._apps:
+    # Pobieramy nasz klucz [firebase] z sekretów
+    cert = dict(st.secrets["firebase"])
+    cred = credentials.Certificate(cert)
+    firebase_admin.initialize_app(cred)
+
+# Skrót do naszej chmurowej bazy
+fire_db = firestore.client()
 
 # ==========================================
 # 🚦 ROUTER (STEROWANIE STRONAMI)
@@ -182,64 +196,31 @@ def check_password():
     return False
 
 def load_db():
-    """Wczytuje bazę. Jeśli pusta/brak pliku, ładuje Master Usera z sekretów."""
+    """Wczytuje bazę prosto z chmury Firebase (Firestore)"""
     db = {}
-    
-    # 1. Próba wczytania z pliku (jeśli istnieje)
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, 'r') as f:
-                db = json.load(f)
-        except:
-            pass # Jeśli błąd pliku, ignorujemy i lecimy dalej
-
-    # 2. Sprawdzenie czy mamy Master Usera w sekretach (Fallback)
-    # Jeśli baza jest pusta LUB nie ma w niej Trenera, a mamy go w sekretach -> dodajemy go
-    if "master_user" in st.secrets:
-        master = st.secrets["master_user"]
-        master_name = master["name"]
-        
-        if master_name not in db:
-            db[master_name] = {
-                'access_token': master["access_token"],
-                'refresh_token': master["refresh_token"],
-                'expires_at': master["expires_at"]
-            }
-            # Opcjonalnie: zapisujemy to od razu do pliku, żeby działało w tej sesji
-            try:
-                with open(DB_FILE, 'w') as f:
-                    json.dump(db, f, indent=4)
-            except:
-                pass
-
+    try:
+        # Pobieramy wszystkich dokumenty (zawodników) z kolekcji "zawodnicy"
+        docs = fire_db.collection('zawodnicy').stream()
+        for doc in docs:
+            db[doc.id] = doc.to_dict()
+    except Exception as e:
+        st.error(f"Błąd odczytu z bazy chmurowej: {e}")
     return db
 
 def save_db(db):
-    # 1. Zapis lokalny (dla obecnej sesji)
-    with open(DB_FILE, 'w') as f:
-        json.dump(db, f, indent=4)
-        
-    # 2. Automatyczny backup na Discorda
-    if "DISCORD_WEBHOOK" in st.secrets:
-        try:
-            with open(DB_FILE, 'rb') as f:
-                payload = {"content": "🔄 **Backup bazy zawodników!**"}
-                files = {"file": ("zawodnicy.json", f, "application/json")}
-                
-                # Zapisujemy odpowiedź od Discorda
-                response = requests.post(st.secrets["DISCORD_WEBHOOK"], data=payload, files=files)
-                
-                # KLUCZOWE: Jeśli Discord odrzuci paczkę (np. błąd 404 lub 401), wymuszamy wyświetlenie błędu!
-                response.raise_for_status()
-                
-                # Jeśli wszystko się udało, pokazujemy małe, znikające powiadomienie na dole ekranu
-                st.toast("✅ Kopia zapasowa bazy wysłana na Discorda!")
-                
-        except Exception as e:
-            st.error(f"🚨 Błąd wysyłania na Discorda: {e}")
-    else:
-        # Jeśli aplikacja w ogóle nie widzi linku do Discorda, da nam o tym znać
-        st.warning("⚠️ Brak klucza DISCORD_WEBHOOK w sekretach. Backup nie został wysłany.")
+    """Zapisuje zaktualizowane tokeny w chmurze Firebase"""
+    try:
+        # Zapisujemy lub aktualizujemy dane każdego zawodnika w kolekcji
+        for imie, data in db.items():
+            fire_db.collection('zawodnicy').document(imie).set(data)
+            
+        # Zostawiamy powiadomienie na Discordzie (tylko wiadomość tekstowa, bez pliku)
+        if "DISCORD_WEBHOOK" in st.secrets:
+            payload = {"content": "☁️ **Firebase Zaktualizowany!** (Odświeżono token lub dodano zawodnika)"}
+            requests.post(st.secrets["DISCORD_WEBHOOK"], json=payload)
+            
+    except Exception as e:
+        st.error(f"🚨 Błąd zapisu do bazy chmurowej: {e}")
 
 def extract_number(value, type_hint="number"):
     if value is None: return 0.0
@@ -290,8 +271,13 @@ with tab1:
             with st.expander("⚙️ Zarządzanie zawodnikiem"):
                 st.warning(f"Czy na pewno chcesz usunąć zawodnika **{wybrany_imie}**? Usunięcie z bazy jest nieodwracalne.")
                 if st.button(f"🗑️ Ostatecznie usuń: {wybrany_imie}", type="primary"):
-                    del db[wybrany_imie]
-                    save_db(db)
+                    # 1. Usuwamy dokument prosto z chmury!
+                    fire_db.collection('zawodnicy').document(wybrany_imie).delete()
+                    
+                    # 2. Powiadomienie na Discordzie
+                    if "DISCORD_WEBHOOK" in st.secrets:
+                        requests.post(st.secrets["DISCORD_WEBHOOK"], json={"content": f"🗑️ Usunięto zawodnika: {wybrany_imie}"})
+                        
                     st.rerun()
             
             client = Client()

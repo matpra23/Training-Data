@@ -303,7 +303,8 @@ with tab1:
                     
                     # 2. Powiadomienie na Discordzie
                     if "DISCORD_WEBHOOK" in st.secrets:
-                        requests.post(st.secrets["DISCORD_WEBHOOK"], json={"content": f"🗑️ Usunięto zawodnika: {wybrany_imie}"})
+                        wiadomosc_usuniecie = f"🗑️ **Zawodnik Usunięty!** (Trwale wykasowano z bazy: **{wybrany_imie}**)"
+                        requests.post(st.secrets["DISCORD_WEBHOOK"], json={"content": wiadomosc_usuniecie})
                         
                     st.rerun()
             

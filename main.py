@@ -251,7 +251,7 @@ if not check_password():
 
 st.title("Panel Trenera")
 
-tab1, tab2, tab3 = st.tabs(["Analiza Treningów", "Dodaj Zawodnika", "⚙️ System"])
+tab1, tab2 = st.tabs(["Analiza Treningów", "Dodaj Zawodnika"])
 
 # --- ZAKŁADKA 1: ANALIZA ---
 with tab1:
@@ -605,39 +605,11 @@ with tab2:
         else:
             st.warning("Wypełnij oba pola (Kod i Nazwa).")
 
-# --- ZAKŁADKA 3: SYSTEM I BACKUP ---
-with tab3:
-    st.header("Zarządzanie bazą danych")
-    st.info("Tutaj możesz przywrócić listę zawodników z pliku z Discorda w przypadku restartu serwera Streamlit.")
-    
-    # Krok 1: Wgranie pliku
-    uploaded_file = st.file_uploader("Wybierz plik z kopią zapasową (zawodnicy.json)", type=["json"])
-    
-    if uploaded_file is not None:
-        st.warning("Uwaga: Wgranie tego pliku całkowicie nadpisze obecną bazę zawodników (jeśli jacyś są).")
-        
-        # Krok 2: Przycisk potwierdzający operację
-        if st.button("🔄 Przywróć bazę z tego pliku", type="primary"):
-            try:
-                # Odczytujemy wgrany plik JSON
-                backup_data = json.load(uploaded_file)
-                
-                # Używamy Twojej wbudowanej funkcji do zapisania go na wirtualny dysk
-                # UWAGA: to też wyśle powiadomienie na Discorda o udanym przywróceniu!
-                save_db(backup_data)
-                
-                st.success("✅ Sukces! Baza zawodników została przywrócona.")
-                time.sleep(1.5) # Krótka pauza, żebyś zdążył przeczytać komunikat
-                st.rerun()      # Odświeżenie aplikacji - zawodnicy natychmiast wracają do Zakładki 1!
-                
-            except Exception as e:
-                st.error(f"🚨 Błąd przywracania: {e}")
-
 # --- UKRYWANIE MENU STREAMLIT ---
 hide_menu_style = """
     <style>
     #MainMenu {visibility: hidden;} /* Ukrywa hamburger menu z linkiem do GitHuba */
-    header {visibility: hidden;}    /* Ukrywa górny pasek z przyciskiem Deploy */
+    .stAppDeployButton {display: none;} /* Ukrywa TYLKO przycisk Deploy, chroniąc logo */
     </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)

@@ -65,44 +65,47 @@ if query_params.get("strona") == "prywatnosc":
         st.rerun()              # Odświeża stronę do stanu początkowego
 
     st.markdown("""
-    # Privacy Policy
-    **Effective Date:** February 11, 2026
+    # Polityka Prywatności
+    **Data ostatniej aktualizacji:** 3 marca 2026 r.
 
-    This Privacy Policy describes how the **Coaching Dashboard** ("we", "us", or "our") collects, uses, and shares your personal data when you use our application powered by the Strava API.
+    Niniejsza Polityka Prywatności określa, w jaki sposób aplikacja **CoachPlus Dashboard** ("my", "nasza aplikacja") zbiera, przetwarza i chroni Twoje dane osobowe w związku z korzystaniem z integracji z API serwisu Strava.
 
-    ## 1. Introduction
-    This application is an internal tool designed specifically for coaching purposes. Its primary goal is to visualize training data to help athletes and coaches analyze performance and adjust training plans.
+    ## 1. Wprowadzenie
+    Aplikacja jest wewnętrznym narzędziem analitycznym stworzonym na potrzeby współpracy trenerskiej. Jej głównym celem jest wizualizacja danych treningowych, co pozwala trenerom i zawodnikom na lepszą analizę wyników oraz precyzyjne dostosowywanie planów treningowych.
 
-    ## 2. Data We Collect
-    We do not collect any data without your explicit consent. When you authorize our application via Strava, we access the following information through the Strava API:
-    * **Profile Information:** First name, last name.
-    * **Activity Data:** Activity type (run, ride, swim, etc.), distance, duration, speed/pace, heart rate, and dates of activities.
+    ## 2. Jakie dane zbieramy?
+    Nie pobieramy żadnych Twoich danych bez Twojej wyraźnej, dobrowolnej zgody. Po autoryzacji naszej aplikacji za pośrednictwem serwisu Strava, uzyskujemy dostęp do następujących informacji:
+    * **Dane profilowe:** Imię i nazwisko (lub pseudonim podany trenerowi).
+    * **Dane o aktywnościach:** Typy aktywności (bieganie, rower, pływanie itp.), dystans, czas trwania, tempo/prędkość, tętno (w tym strefy tętna) oraz daty treningów.
+    * **Dane autoryzacyjne:** Tokeny dostępu (klucze API) niezbędne do utrzymania bezpiecznego połączenia z Twoim kontem.
 
-    ## 3. How We Use Your Data
-    The data collected is used strictly for the following purposes:
-    * To display training statistics and charts within the application dashboard.
-    * To allow an authorized coach to monitor training loads and progress.
+    ## 3. Jak wykorzystujemy Twoje dane?
+    Zebrane dane są wykorzystywane **wyłącznie w celach szkoleniowych i analitycznych**, w tym do:
+    * Generowania statystyk, tabel i wykresów w panelu aplikacji.
+    * Umożliwienia Twojemu trenerowi monitorowania postępów, obciążeń treningowych oraz stref intensywności.
+    
+    **Nie wykorzystujemy** Twoich danych do celów reklamowych, marketingowych ani do żadnych innych działań komercyjnych niezwiązanych bezpośrednio z usługą trenerską.
 
-    We **do not** use your data for advertising, marketing, or any commercial purposes unrelated to the coaching service.
+    ## 4. Przechowywanie i udostępnianie danych
+    **Nigdy nie sprzedajemy Twoich danych osobowych.**
+    
+    Szczegółowe dane dotyczące Twoich treningów nie są trwale magazynowane na naszych serwerach – są pobierane i przetwarzane w czasie rzeczywistym na żądanie trenera. 
+    W naszej bezpiecznej chmurowej bazie danych (Google Firebase) przechowujemy wyłącznie Twoją nazwę użytkownika oraz tokeny autoryzacyjne, które pozwalają aplikacji na komunikację ze Stravą. Nie udostępniamy tych danych żadnym podmiotom trzecim, z wyjątkiem sytuacji wymaganych przez prawo.
 
-    ## 4. Data Sharing and Storage
-    **We do not sell your personal data.**
+    ## 5. Twoje prawa i kontrola nad danymi
+    Masz pełną kontrolę nad swoimi danymi i w każdej chwili możesz zrezygnować z integracji:
+    * **Cofnięcie dostępu:** Możesz w dowolnym momencie odłączyć naszą aplikację, przechodząc do ustawień swojego konta: [Strava Settings > My Apps](https://www.strava.com/settings/apps) i klikając "Revoke Access" (Cofnij dostęp).
+    * **Całkowite usunięcie z bazy:** Aby trwale usunąć swoje imię oraz wygasłe tokeny z bazy danych aplikacji, skontaktuj się bezpośrednio ze swoim trenerem, który usunie Twój profil jednym kliknięciem z poziomu panelu.
 
-    The data is processed in real-time or cached temporarily to improve application performance. We do not share your Strava data with any third parties, except as required by law.
-
-    ## 5. Your Rights and Control
-    You have full control over your data:
-    * **Revoke Access:** You can disconnect this application at any time by going to your [Strava Settings > My Apps](https://www.strava.com/settings/apps) and clicking "Revoke Access".
-    * **Data Deletion:** Upon revocation, the application will no longer have access to your Strava account.
-
-    ## 6. Contact Us
-    If you have any questions about this Privacy Policy, please contact the developer:
+    ## 6. Kontakt
+    Jeśli masz jakiekolwiek pytania dotyczące niniejszej Polityki Prywatności, skontaktuj się z administratorem/deweloperem aplikacji:
 
     **Email:** intmondev@gmail.com
 
     ---
-    *This application is powered by the Strava API but is not endorsed or certified by Strava.*
+    *Ta aplikacja korzysta z API Strava, ale nie jest w żaden sposób sponsorowana, wspierana ani certyfikowana przez firmę Strava.*
     """)
+    
     st.stop()
 
 # --- SCENARIUSZ B: SUKCES PO AUTORYZACJI ---
@@ -165,7 +168,7 @@ def render_footer():
         <div class="footer">
             <p style="margin: 0;">
                 © 2026 <b>IntMonDev</b>. All rights reserved. 
-                | Created using Strava API 
+                | Using Strava API 
                 | <a href="{LINK_DO_POLITYKI}" target="_blank">Polityka Prywatności</a>
             </p>
         </div>
@@ -605,7 +608,7 @@ with tab2:
     st.markdown("### Krok 2: Wklej dane")
     st.markdown("""
     1. Zawodnik klika link i loguje się.
-    2. Zostaje przekierowany na stronę sukcesu.
+    2. Zostaje przekierowany na stronę z kodem.
     3. Kopiuje z pola kod.
     4. Wysyła ten kod Tobie.
     """)

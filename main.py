@@ -534,7 +534,7 @@ with tab1:
                                         title=tytul_wykresu, 
                                         color=kolor_wg,
                                         # Dodaliśmy dystans do "dymka" z informacjami po najechaniu myszką!
-                                        hover_data=["Nazwa Treningu", "Dystans (km)", "Tempo", "Tętno"] 
+                                        hover_data=["Nazwa Treningu", "Czas", "Dystans (km)", "Tempo", "Tętno"]
                                     )
                                     st.plotly_chart(fig)
                                 

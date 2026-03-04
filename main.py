@@ -105,7 +105,7 @@ if query_params.get("strona") == "prywatnosc":
     ---
     *Ta aplikacja korzysta z API Strava, ale nie jest w żaden sposób sponsorowana, wspierana ani certyfikowana przez firmę Strava.*
     """)
-    
+
     st.stop()
 
 # --- SCENARIUSZ B: SUKCES PO AUTORYZACJI ---
@@ -504,25 +504,26 @@ with tab1:
                                     unsafe_allow_html=True
                                 )
                                 
-                                # --- WYKRES DYSTANSU ---
-                                if "Dystans (km)" in final_df.columns and final_df["Dystans (km)"].sum() > 0:
+                                # --- WYKRES CZASU TRENINGU ---
+                                if "Czas (min)" in final_df.columns and final_df["Czas (min)"].sum() > 0:
                                     
                                     # INTELIGENTNE KOLOROWANIE:
                                     if len(wybrane_typy) > 1:
                                         kolor_wg = "Typ" 
-                                        tytul_wykresu = "Dzienny dystans"
+                                        tytul_wykresu = "Dzienny czas trwania aktywności"
                                     else:
-                                        # Skoro na osi Y jest dystans, pokolorujmy słupki na podstawie intensywności (Tętna)
+                                        # Skoro na osi Y jest czas, pokolorujmy słupki na podstawie intensywności (Tętna)
                                         kolor_wg = "Tętno" 
-                                        tytul_wykresu = f"Dzienny dystans ({wybrane_typy[0]})"
+                                        tytul_wykresu = f"Dzienny czas treningu ({wybrane_typy[0]})"
 
                                     fig = px.bar(
                                         final_df, 
                                         x="Data", 
-                                        y="Dystans (km)", 
+                                        y="Czas (min)", # <--- ZMIANA TUTAJ
                                         title=tytul_wykresu, 
                                         color=kolor_wg,
-                                        hover_data=["Nazwa Treningu", "Czas (min)", "Tempo", "Tętno"] 
+                                        # Dodaliśmy dystans do "dymka" z informacjami po najechaniu myszką!
+                                        hover_data=["Nazwa Treningu", "Dystans (km)", "Tempo", "Tętno"] 
                                     )
                                     st.plotly_chart(fig)
                                 

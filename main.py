@@ -418,7 +418,7 @@ with tab1:
 
                             # 2. PRZELICZANIE
                             dist_km = round(extract_number(activity.distance) / 1000, 2)
-                            duration_min = round(extract_number(activity.moving_time, "time") / 60, 2)
+                            duration_min = int(round(extract_number(activity.moving_time, "time") / 60))
                             avg_hr = round(extract_number(activity.average_heartrate))
                             
                             # Tempo
@@ -537,7 +537,7 @@ with tab1:
                                     # Mamy dane -> Rysujemy wykresy
                                     df_zones = pd.DataFrame({
                                         "Strefa": list(hr_zones_aggregated.keys()),
-                                        "Czas (min)": [round(v / 60, 1) for v in hr_zones_aggregated.values()]
+                                        "Czas (min)": [int(round(v / 60)) for v in hr_zones_aggregated.values()]
                                     })
                                     
                                     # Sztywne przypisanie kolorów do stref (najbezpieczniejsza metoda)

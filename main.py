@@ -501,7 +501,7 @@ with tab1:
 
                                 final_df = df_filtered[[
                                     'Data', 'Typ', 'Nazwa Treningu', 
-                                    'Dystans (km)', 'Czas (min)', 'Tętno', 'Tempo'
+                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo'
                                 ]]
                                 
                                 c1, c2, c3 = st.columns(3)
@@ -510,10 +510,10 @@ with tab1:
                                 c3.metric("Czas (h)", round(final_df['Czas (min)'].sum() / 60, 1))
 
                                 st.write("---")
-                                st.markdown(
-                                    final_df.to_html(escape=False, index=False), 
-                                    unsafe_allow_html=True
-                                )
+                                
+                                # W tabeli ukrywamy brzydką, suchą liczbę "Czas (min)"
+                                tabela_html = final_df.drop(columns=['Czas (min)']).to_html(escape=False, index=False)
+                                st.markdown(tabela_html, unsafe_allow_html=True)
                                 
                                 # --- WYKRES CZASU TRENINGU ---
                                 if "Czas (min)" in final_df.columns and final_df["Czas (min)"].sum() > 0:

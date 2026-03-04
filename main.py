@@ -418,7 +418,17 @@ with tab1:
 
                             # 2. PRZELICZANIE
                             dist_km = round(extract_number(activity.distance) / 1000, 2)
-                            duration_min = int(round(extract_number(activity.moving_time, "time") / 60))
+                            
+                            # Czas w sekundach do przeliczeń
+                            duration_sec = extract_number(activity.moving_time, "time")
+                            duration_min = int(round(duration_sec / 60)) # Niewidoczne: do rysowania wysokości słupka na osi Y
+                            
+                            # Tworzymy ładny format tekstowy (np. 1:05:30 albo 45:00) do tabeli
+                            h = int(duration_sec // 3600)
+                            m = int((duration_sec % 3600) // 60)
+                            s = int(duration_sec % 60)
+                            czas_str = f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
+
                             avg_hr = round(extract_number(activity.average_heartrate))
                             
                             # Tempo
@@ -450,7 +460,8 @@ with tab1:
                                 "Typ": raw_type_str,
                                 "Nazwa": activity.name,
                                 "Dystans (km)": dist_km,
-                                "Czas (min)": duration_min,
+                                "Czas": czas_str,            
+                                "Czas (min)": duration_min, 
                                 "Tętno": avg_hr,
                                 "Tempo": pace_str,
                                 "Link": activity_url

@@ -646,7 +646,7 @@ with tab2:
     code_input = col_a.text_input("Wklej kod autoryzacji (code):")
     name_input = col_b.text_input("Nazwa zawodnika (np. Janek):")
     
-if st.button("Zapisz zawodnika w bazie"):
+    if st.button("Zapisz zawodnika w bazie"):
         if code_input and name_input:
             try:
                 # 1. Wymiana kodu na tokeny

@@ -32,7 +32,7 @@ except FileNotFoundError:
 os.environ["SILENCE_TOKEN_WARNINGS"] = "true"
 
 # Plik bazy danych
-DB_FILE = 'zawodnicy.json'
+DB_FILE = 'zawodnicy-v2.json'
 
 # Logo aplikacji
 st.logo(
@@ -203,7 +203,7 @@ def load_db():
     db = {}
     try:
         # Pobieramy wszystkich dokumenty (zawodników) z kolekcji "zawodnicy"
-        docs = fire_db.collection('zawodnicy').stream()
+        docs = fire_db.collection('zawodnicy-v2').stream()
         for doc in docs:
             db[doc.id] = doc.to_dict()
     except Exception as e:
@@ -215,7 +215,7 @@ def save_db(db, zmieniony_zawodnik=None):
     try:
         # Zapisujemy lub aktualizujemy dane każdego zawodnika w kolekcji
         for imie, data in db.items():
-            fire_db.collection('zawodnicy').document(imie).set(data)
+            fire_db.collection('zawodnicy-v2').document(imie).set(data)
             
         # Zostawiamy powiadomienie na Discordzie ze szczegółami
         if "DISCORD_WEBHOOK" in st.secrets:
@@ -302,7 +302,7 @@ with tab1:
                 st.warning(f"Czy na pewno chcesz usunąć zawodnika **{wybrany_imie}**? Usunięcie z bazy jest nieodwracalne.")
                 if st.button(f"🗑️ Ostatecznie usuń: {wybrany_imie}", type="primary"):
                     # 1. Usuwamy dokument prosto z chmury!
-                    fire_db.collection('zawodnicy').document(wybrany_imie).delete()
+                    fire_db.collection('zawodnicy-v2').document(wybrany_imie).delete()
                     
                     # 2. Powiadomienie na Discordzie
                     if "DISCORD_WEBHOOK" in st.secrets:

@@ -197,7 +197,7 @@ def check_password():
             st.error("Błędne hasło")
             
     return False
-
+# 
 def load_db():
     """Wczytuje bazę prosto z chmury Firebase (Firestore)"""
     db = {}

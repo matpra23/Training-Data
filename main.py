@@ -682,6 +682,52 @@ with tab2:
                 }
                 save_db(db, zmieniony_zawodnik=name_input)
                 st.success(f"Sukces! Dodano zawodnika: {name_input} (ID: {athlete_id})")
+
+                # 4. AUTOMATYCZNE POBIERANIE HISTORII (2 TYGODNIE)
+                with st.spinner('Pobieram historię treningów z ostatnich 14 dni...'):
+                    try:
+                        # Obliczamy timestamp dla daty 14 dni temu
+                        dwa_tygodnie_temu = int(time.time()) - (14 * 24 * 3600)
+                        
+                        headers = {'Authorization': f"Bearer {nowe_dane['access_token']}"}
+                        
+                        # Pobieramy listę aktywności zawodnika od tej daty
+                        res_activities = requests.get(
+                            'https://www.strava.com/api/v3/athlete/activities',
+                            headers=headers,
+                            params={'after': dwa_tygodnie_temu, 'per_page': 50}
+                        )
+                        
+                        if res_activities.status_code == 200:
+                            activities_list = res_activities.json()
+                            
+                            # Referencja do teczki tego zawodnika w bazie
+                            user_ref = fire_db.collection('zawodnicy-v2').document(name_input)
+                            
+                            zapisane_treningi = 0
+                            
+                            for act in activities_list:
+                                act_id = act.get('id')
+                                
+                                # Pobieramy pełne detale treningu, żeby mieć to samo co w Webhooku!
+                                res_detail = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}', headers=headers)
+                                
+                                if res_detail.status_code == 200:
+                                    full_act = res_detail.json()
+                                    # Zapisujemy do podkolekcji historia_treningow
+                                    user_ref.collection('historia_treningow').document(str(act_id)).set(full_act)
+                                else:
+                                    # W razie błędu zapisujemy chociaż wersję skróconą
+                                    user_ref.collection('historia_treningow').document(str(act_id)).set(act)
+                                    
+                                zapisane_treningi += 1
+                                
+                            st.success(f"✅ Baza gotowa! Zapisano {zapisane_treningi} treningów z historii.")
+                        else:
+                            st.warning("Nie udało się pobrać historii ze Stravy.")
+                            
+                    except Exception as e:
+                        st.error(f"Błąd podczas pobierania historii: {e}")
                 
             except Exception as e:
                 st.error(f"Błąd autoryzacji: {e}")

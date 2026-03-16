@@ -248,22 +248,39 @@ def extract_number(value, type_hint="number"):
     except: return 0.0
 
 def parse_token_response(response):
-    """Bezpiecznie wyciąga tokeny, niezależnie od tego, czy stravalib zwróci słownik, czy obiekt."""
-    # Jeśli stravalib zwróci krotkę (w niektórych wersjach tak jest)
+    """Bezpiecznie wyciąga tokeny i ID zawodnika, niezależnie od tego, czy stravalib zwróci słownik, czy obiekt."""
     if isinstance(response, tuple):
         response = response[0]
         
+    # Przygotowujemy zmienną na ID
+    athlete_id = None
+        
     if isinstance(response, dict):
+        # Wyciąganie ID ze słownika
+        athlete_data = response.get('athlete', {})
+        if isinstance(athlete_data, dict):
+            athlete_id = athlete_data.get('id')
+            
         return {
             'access_token': response.get('access_token'),
             'refresh_token': response.get('refresh_token'),
-            'expires_at': response.get('expires_at')
+            'expires_at': response.get('expires_at'),
+            'athlete_id': athlete_id  # <--- Dodane pole!
         }
     else:
+        # Wyciąganie ID z obiektu
+        athlete_data = getattr(response, 'athlete', None)
+        if athlete_data:
+            if isinstance(athlete_data, dict):
+                athlete_id = athlete_data.get('id')
+            else:
+                athlete_id = getattr(athlete_data, 'id', None)
+                
         return {
             'access_token': getattr(response, 'access_token', None),
             'refresh_token': getattr(response, 'refresh_token', None),
-            'expires_at': getattr(response, 'expires_at', None)
+            'expires_at': getattr(response, 'expires_at', None),
+            'athlete_id': athlete_id  # <--- Dodane pole!
         }
 
 # ==========================================
@@ -643,6 +660,7 @@ with tab2:
                 
                 db = load_db()
                 db[name_input] = {
+                    'athlete_id': nowe_dane.get('athlete_id'),  # <--- TA JEDNA NOWA LINIJKA!
                     'access_token': nowe_dane['access_token'],
                     'refresh_token': nowe_dane['refresh_token'],
                     'expires_at': nowe_dane['expires_at']

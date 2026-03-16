@@ -646,27 +646,42 @@ with tab2:
     code_input = col_a.text_input("Wklej kod autoryzacji (code):")
     name_input = col_b.text_input("Nazwa zawodnika (np. Janek):")
     
-    if st.button("Zapisz zawodnika w bazie"):
+if st.button("Zapisz zawodnika w bazie"):
         if code_input and name_input:
             try:
+                # 1. Wymiana kodu na tokeny
                 token_response = client.exchange_code_for_token(
                     client_id=MY_CLIENT_ID,
                     client_secret=MY_CLIENT_SECRET,
                     code=code_input
                 )
                 
-                # Bezpieczne wyciągnięcie danych
+                # Bezpieczne wyciągnięcie samych tokenów
                 nowe_dane = parse_token_response(token_response)
                 
+                # --- 2. KULOODPORNE POBIERANIE ID ---
+                # Używamy świeżego tokena, żeby zapytać Stravę, kim jest ten człowiek!
+                athlete_id = nowe_dane.get('athlete_id')
+                
+                if not athlete_id: # Jeśli stravalib nam tego nie dał, bierzemy to sami
+                    headers = {'Authorization': f"Bearer {nowe_dane['access_token']}"}
+                    res = requests.get('https://www.strava.com/api/v3/athlete', headers=headers)
+                    if res.status_code == 200:
+                        dane_ze_stravy = res.json()
+                        athlete_id = dane_ze_stravy.get('id')
+                    else:
+                        st.warning("Uwaga: Udało się pobrać tokeny, ale Strava nie oddała ID zawodnika.")
+
+                # 3. Zapis do naszej bazy Firebase
                 db = load_db()
                 db[name_input] = {
-                    'athlete_id': nowe_dane.get('athlete_id'),  # <--- TA JEDNA NOWA LINIJKA!
+                    'athlete_id': athlete_id,  # Teraz mamy 100% pewności, że to tu będzie!
                     'access_token': nowe_dane['access_token'],
                     'refresh_token': nowe_dane['refresh_token'],
                     'expires_at': nowe_dane['expires_at']
                 }
                 save_db(db, zmieniony_zawodnik=name_input)
-                st.success(f"Sukces! Dodano zawodnika: {name_input}")
+                st.success(f"Sukces! Dodano zawodnika: {name_input} (ID: {athlete_id})")
                 
             except Exception as e:
                 st.error(f"Błąd autoryzacji: {e}")

@@ -175,27 +175,65 @@ def render_footer():
         """, unsafe_allow_html=True)
 
 def check_password():
-    """Obsługa logowania hasłem głównym"""
-    if "APP_PASSWORD" not in st.secrets:
-        st.error("Nie skonfigurowano hasła w secrets.toml!")
+    """Obsługa logowania przez Firebase Authentication (E-mail i Hasło)"""
+    if "FIREBASE_WEB_API_KEY" not in st.secrets:
+        st.error("Brak klucza FIREBASE_WEB_API_KEY w secrets.toml!")
         return False
 
-    if "password_correct" not in st.session_state:
-        st.session_state.password_correct = False
+    api_key = st.secrets["FIREBASE_WEB_API_KEY"]
 
-    if st.session_state.password_correct:
+    # 1. Sprawdzamy, czy trener jest już zalogowany w tej sesji
+    if "user_id" in st.session_state:
+        # Pasek boczny z informacją o zalogowanym trenerze i przyciskiem wylogowania
+        with st.sidebar:
+            st.markdown(f"Zalogowany jako:<br>**{st.session_state.email}**", unsafe_allow_html=True)
+            if st.button("Wyloguj się"):
+                # Czyszczenie sesji
+                del st.session_state["user_id"]
+                del st.session_state["email"]
+                st.rerun()
         return True
 
-    st.markdown("## Dashboard - Logowanie")
-    password = st.text_input("Podaj hasło dostępu", type="password")
+    # 2. Ekran logowania (jeśli nie jest zalogowany)
+    st.markdown("## Panel Trenera - Logowanie")
     
-    if st.button("Zaloguj"):
-        if password == st.secrets["APP_PASSWORD"]:
-            st.session_state.password_correct = True
-            st.rerun()
-        else:
-            st.error("Błędne hasło")
-            
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("login_form"):
+            email = st.text_input("Adres e-mail")
+            password = st.text_input("Hasło", type="password")
+            submit = st.form_submit_button("Zaloguj się", type="primary")
+
+            if submit:
+                if email and password:
+                    with st.spinner("Weryfikacja..."):
+                        # Pukamy do drzwi API Firebase Auth
+                        url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={api_key}"
+                        payload = {
+                            "email": email,
+                            "password": password,
+                            "returnSecureToken": True
+                        }
+                        response = requests.post(url, json=payload)
+
+                        if response.status_code == 200:
+                            data = response.json()
+                            # SUKCES! Zapisujemy unikalne ID trenera do pamięci przeglądarki
+                            st.session_state.user_id = data['localId']
+                            st.session_state.email = data['email']
+                            st.success("Zalogowano pomyślnie!")
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            # BŁĄD LOGOWANIA
+                            error_msg = response.json().get("error", {}).get("message", "")
+                            if error_msg in ["INVALID_LOGIN_CREDENTIALS", "INVALID_PASSWORD", "EMAIL_NOT_FOUND"]:
+                                st.error("Błędny adres e-mail lub hasło.")
+                            else:
+                                st.error(f"Wystąpił błąd: {error_msg}")
+                else:
+                    st.warning("Wpisz e-mail i hasło.")
+                    
     return False
 # 
 def load_db():

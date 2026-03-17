@@ -317,9 +317,28 @@ with tab1:
             # --- BEZPIECZNA STREFA USUWANIA UŻYTKOWNIKÓW---
             with st.expander("⚙️ Zarządzanie zawodnikiem"):
                 st.warning(f"Czy na pewno chcesz usunąć zawodnika **{wybrany_imie}**? Usunięcie z bazy jest nieodwracalne.")
-                if st.button(f"🗑️ Ostatecznie usuń: {wybrany_imie}", type="primary"):
-                    # 1. Usuwamy dokument prosto z chmury!
-                    fire_db.collection('zawodnicy-v2').document(wybrany_imie).delete()
+                if st.button(f"Ostatecznie usuń: {wybrany_imie}", type="primary"):
+                    with st.spinner("Usuwam historię treningów i czyszczę bazę... 🧹"):
+                        # 1. Wchodzimy do podkolekcji z treningami i kasujemy je jeden po drugim
+                        treningi_ref = fire_db.collection('zawodnicy-v2').document(wybrany_imie).collection('historia_treningow')
+                        treningi_docs = treningi_ref.stream()
+                        
+                        licznik = 0
+                        for doc in treningi_docs:
+                            doc.reference.delete()
+                            licznik += 1
+                            
+                        # 2. Dopiero jak teczka z treningami jest pusta, usuwamy głównego zawodnika (tokeny)
+                        fire_db.collection('zawodnicy-v2').document(wybrany_imie).delete()
+                    
+                    # 3. Powiadomienie na Discordzie
+                    if "DISCORD_WEBHOOK" in st.secrets:
+                        wiadomosc_usuniecie = f"🗑️ **Zawodnik Usunięty!** (Skasowano {licznik} treningów oraz profil: **{wybrany_imie}**)"
+                        requests.post(st.secrets["DISCORD_WEBHOOK"], json={"content": wiadomosc_usuniecie})
+                        
+                    st.success(f"Pomyślnie usunięto zawodnika i wyczyszczono jego {licznik} treningów z bazy!")
+                    time.sleep(2) # Dajemy 2 sekundy na przeczytanie komunikatu
+                    st.rerun()
                     
                     # 2. Powiadomienie na Discordzie
                     if "DISCORD_WEBHOOK" in st.secrets:

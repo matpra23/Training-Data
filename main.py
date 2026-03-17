@@ -488,7 +488,21 @@ with tab1:
                                 "Tempo": pace_str,
                                 "Link": activity_url
                             })
-                            
+
+                            # --- 3. ODCZYTYWANIE STREF TĘTNA Z BAZY ---
+                            # Sprawdzamy, czy w pobranym JSON-ie zapisaliśmy klucz 'zones'
+                            if activity.get('has_heartrate') and 'zones' in activity:
+                                for z in activity['zones']:
+                                    if z.get('type') == 'heartrate' and 'distribution_buckets' in z:
+                                        buckets = z['distribution_buckets']
+                                        if len(buckets) >= 5:
+                                            # Firebase zapisuje czas w sekundach, wyciągamy go bezpiecznie z get()
+                                            hr_zones_aggregated["Z1 (Regeneracja)"] += buckets[0].get('time', 0)
+                                            hr_zones_aggregated["Z2 (Wytrzymałość)"] += buckets[1].get('time', 0)
+                                            hr_zones_aggregated["Z3 (Tempo)"] += buckets[2].get('time', 0)
+                                            hr_zones_aggregated["Z4 (Próg)"] += buckets[3].get('time', 0)
+                                            hr_zones_aggregated["Z5 (Anaerobowa)"] += buckets[4].get('time', 0)
+
                             # --- POBIERANIE STREF TĘTNA ---
                             # Pobieramy zawsze, jeśli trening w ogóle ma zapisane tętno
                             if getattr(activity, 'has_heartrate', False):
@@ -716,17 +730,23 @@ with tab2:
                                 act_id = act.get('id')
                                 
                                 # Pobieramy pełne detale treningu, żeby mieć to samo co w Webhooku!
+                                # Pobieramy pełne detale treningu
                                 res_detail = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}', headers=headers)
                                 
                                 if res_detail.status_code == 200:
                                     full_act = res_detail.json()
-                                    # Zapisujemy do podkolekcji historia_treningow
+                                    
+                                    # --- NOWOŚĆ: POBIERAMY STREFY TĘTNA! ---
+                                    if full_act.get('has_heartrate'):
+                                        res_zones = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}/zones', headers=headers)
+                                        if res_zones.status_code == 200:
+                                            # Doklejamy nową "szufladkę" 'zones' do naszego głównego JSON-a!
+                                            full_act['zones'] = res_zones.json()
+                                            
+                                    # Zapisujemy kompletny JSON (razem ze strefami) do bazy
                                     user_ref.collection('historia_treningow').document(str(act_id)).set(full_act)
                                 else:
-                                    # W razie błędu zapisujemy chociaż wersję skróconą
                                     user_ref.collection('historia_treningow').document(str(act_id)).set(act)
-                                    
-                                zapisane_treningi += 1
                                 
                             st.success(f"✅ Baza gotowa! Zapisano {zapisane_treningi} treningów z historii.")
                         else:

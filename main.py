@@ -401,24 +401,21 @@ with tab1:
                 wybrane_typy.append("Inne")
 
             if st.button("Pobierz i filtruj treningi"):
-                with st.spinner('Błyskawicznie wczytuję dane z bazy... ⚡'):
+                with st.spinner('Wczytuję dane z bazy...'):
                     try:
-                        # 1. ODCINAMY STRAVĘ, CZYTAMY Z FIREBASE!
+                        # 1. Czytanie z Firebase
                         treningi_ref = fire_db.collection('zawodnicy-v2').document(wybrany_imie).collection('historia_treningow')
                         docs = treningi_ref.stream()
                         
                         data = []
                         nierozpoznane_typy = set()
                         
-                        # Zostawiamy licznik stref tętna, żeby nie zepsuć wykresów niżej.
-                        # UWAGA: Strava wymaga na strefy osobnego zapytania. Dodamy to wkrótce!
                         hr_zones_aggregated = {
                             "Z1 (Regeneracja)": 0, "Z2 (Wytrzymałość)": 0, "Z3 (Tempo)": 0,
                             "Z4 (Próg)": 0, "Z5 (Anaerobowa)": 0
                         }
 
                         for doc in docs:
-                            # Zamieniamy dokument z Firebase na słownik Pythona (JSON)
                             activity = doc.to_dict()
                             
                             # --- FILTROWANIE PO DACIE ---
@@ -676,14 +673,12 @@ with tab2:
                     code=code_input
                 )
                 
-                # Bezpieczne wyciągnięcie samych tokenów
                 nowe_dane = parse_token_response(token_response)
                 
                 # --- 2. KULOODPORNE POBIERANIE ID ---
-                # Używamy świeżego tokena, żeby zapytać Stravę, kim jest ten człowiek!
                 athlete_id = nowe_dane.get('athlete_id')
                 
-                if not athlete_id: # Jeśli stravalib nam tego nie dał, bierzemy to sami
+                if not athlete_id:
                     headers = {'Authorization': f"Bearer {nowe_dane['access_token']}"}
                     res = requests.get('https://www.strava.com/api/v3/athlete', headers=headers)
                     if res.status_code == 200:
@@ -692,10 +687,10 @@ with tab2:
                     else:
                         st.warning("Uwaga: Udało się pobrać tokeny, ale Strava nie oddała ID zawodnika.")
 
-                # 3. Zapis do naszej bazy Firebase
+                # 3. Zapis do Firebase
                 db = load_db()
                 db[name_input] = {
-                    'athlete_id': athlete_id,  # Teraz mamy 100% pewności, że to tu będzie!
+                    'athlete_id': athlete_id,
                     'access_token': nowe_dane['access_token'],
                     'refresh_token': nowe_dane['refresh_token'],
                     'expires_at': nowe_dane['expires_at']
@@ -730,7 +725,6 @@ with tab2:
                                 act_id = act.get('id')
                                 
                                 # Pobieramy pełne detale treningu, żeby mieć to samo co w Webhooku!
-                                # Pobieramy pełne detale treningu
                                 res_detail = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}', headers=headers)
                                 
                                 if res_detail.status_code == 200:
@@ -745,6 +739,7 @@ with tab2:
                                             
                                     # Zapisujemy kompletny JSON (razem ze strefami) do bazy
                                     user_ref.collection('historia_treningow').document(str(act_id)).set(full_act)
+                                    zapisane_treningi += 1
                                 else:
                                     user_ref.collection('historia_treningow').document(str(act_id)).set(act)
                                 

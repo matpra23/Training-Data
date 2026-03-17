@@ -538,6 +538,8 @@ with tab1:
                                     'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo'
                                 ]]
                                 
+                                final_df = final_df.sort_values(by="Data", ascending=False)
+                                
                                 c1, c2, c3 = st.columns(3)
                                 c1.metric("Liczba treningów", len(final_df))
                                 c2.metric("Suma km", round(final_df['Dystans (km)'].sum(), 1))

@@ -401,58 +401,64 @@ with tab1:
                 wybrane_typy.append("Inne")
 
             if st.button("Pobierz i filtruj treningi"):
-                with st.spinner('Pobieram i przetwarzam dane...'):
+                with st.spinner('Błyskawicznie wczytuję dane z bazy... ⚡'):
                     try:
-                        activities = client.get_activities(after=str(start_date), before=str(end_date), limit=100)
+                        # 1. ODCINAMY STRAVĘ, CZYTAMY Z FIREBASE!
+                        treningi_ref = fire_db.collection('zawodnicy-v2').document(wybrany_imie).collection('historia_treningow')
+                        docs = treningi_ref.stream()
                         
                         data = []
                         nierozpoznane_typy = set()
                         
-                        # Dodajemy słownik na strefy tętna (czasy w sekundach)
+                        # Zostawiamy licznik stref tętna, żeby nie zepsuć wykresów niżej.
+                        # UWAGA: Strava wymaga na strefy osobnego zapytania. Dodamy to wkrótce!
                         hr_zones_aggregated = {
-                            "Z1 (Regeneracja)": 0,
-                            "Z2 (Wytrzymałość)": 0,
-                            "Z3 (Tempo)": 0,
-                            "Z4 (Próg)": 0,
-                            "Z5 (Anaerobowa)": 0
+                            "Z1 (Regeneracja)": 0, "Z2 (Wytrzymałość)": 0, "Z3 (Tempo)": 0,
+                            "Z4 (Próg)": 0, "Z5 (Anaerobowa)": 0
                         }
 
-                        for activity in activities:
-                            # 1. POBIERANIE TYPU
-                            raw_type = getattr(activity, 'sport_type', None)
-                            if not raw_type:
-                                raw_type = activity.type
+                        for doc in docs:
+                            # Zamieniamy dokument z Firebase na słownik Pythona (JSON)
+                            activity = doc.to_dict()
                             
-                            raw_type_str = str(raw_type)\
-                                .replace("root='", "")\
-                                .replace("'", "")\
-                                .replace("ActivityType.", "")
+                            # --- FILTROWANIE PO DACIE ---
+                            start_date_str = activity.get('start_date_local', '')
+                            if not start_date_str:
+                                continue
+                                
+                            # Konwertujemy tekst "2026-03-10T15:30:00Z" na samą datę "2026-03-10"
+                            activity_date_str = start_date_str[:10]
+                            activity_date = pd.to_datetime(activity_date_str).date()
                             
+                            # Jeśli data nie mieści się w filtrze z suwaków, pomijamy ten trening
+                            if not (start_date <= activity_date <= end_date):
+                                continue
+
+                            # --- 1. POBIERANIE TYPU ---
+                            # (Czytamy ze słownika, a nie z obiektu stravalib)
+                            raw_type_str = activity.get('sport_type') or activity.get('type', 'Unknown')
                             polski_typ = TYPE_MAP.get(raw_type_str, "Inne")
                             
                             if polski_typ == "Inne":
                                 nierozpoznane_typy.add(raw_type_str)
 
-                            # 2. PRZELICZANIE
-                            dist_km = round(extract_number(activity.distance) / 1000, 2)
+                            # --- 2. PRZELICZANIE DANYCH ---
+                            dist_km = round(activity.get('distance', 0) / 1000, 2)
                             
-                            # Czas w sekundach do przeliczeń
-                            duration_sec = extract_number(activity.moving_time, "time")
-                            duration_min = int(round(duration_sec / 60)) # Niewidoczne: do rysowania wysokości słupka na osi Y
+                            duration_sec = activity.get('moving_time', 0)
+                            duration_min = int(round(duration_sec / 60)) 
                             
-                            # Tworzymy ładny format tekstowy (np. 1:05:30 albo 45:00) do tabeli
                             h = int(duration_sec // 3600)
                             m = int((duration_sec % 3600) // 60)
                             s = int(duration_sec % 60)
                             czas_str = f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
 
-                            avg_hr = round(extract_number(activity.average_heartrate))
+                            avg_hr = round(activity.get('average_heartrate', 0))
                             
-                            # Tempo
-                            avg_speed_ms = extract_number(activity.average_speed)
+                            avg_speed_ms = activity.get('average_speed', 0)
                             pace_str = "-"
+                            
                             if avg_speed_ms > 0:
-                                # Zmiana tutaj: sprawdzamy czy to Bieganie LUB Bieganie na nartach
                                 if polski_typ in ["Bieganie", "Bieganie na nartach"]:
                                     pace_decimal = (1000 / avg_speed_ms) / 60
                                     p_min = int(pace_decimal)
@@ -466,16 +472,15 @@ with tab1:
                                     p_min = int(pace_decimal)
                                     p_sec = int((pace_decimal - p_min) * 60)
                                     pace_str = f"{p_min}:{p_sec:02d} /100m"
-                                # Opcjonalnie: wiosłowanie zazwyczaj podaje się na 500m, 
-                                # ale na razie zostawiamy bazowe ustawienia dla reszty.
 
-                            activity_url = f"https://www.strava.com/activities/{activity.id}"
+                            activity_id = activity.get('id')
+                            activity_url = f"https://www.strava.com/activities/{activity_id}"
                             
                             data.append({
-                                "Data": activity.start_date_local.strftime("%Y-%m-%d"),
+                                "Data": activity_date_str,
                                 "Typ Polski": polski_typ,
                                 "Typ": raw_type_str,
-                                "Nazwa": activity.name,
+                                "Nazwa": activity.get('name', 'Brak nazwy'),
                                 "Dystans (km)": dist_km,
                                 "Czas": czas_str,            
                                 "Czas (min)": duration_min, 
@@ -483,6 +488,7 @@ with tab1:
                                 "Tempo": pace_str,
                                 "Link": activity_url
                             })
+                            
                             # --- POBIERANIE STREF TĘTNA ---
                             # Pobieramy zawsze, jeśli trening w ogóle ma zapisane tętno
                             if getattr(activity, 'has_heartrate', False):

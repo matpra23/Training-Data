@@ -140,7 +140,7 @@ if query_params.get("strona") == "sukces":
 
 def render_footer():
     """Wyświetla stopkę na dole strony"""
-    LINK_DO_POLITYKI = "https://td-analysis.streamlit.app/?strona=prywatnosc"
+    LINK_DO_POLITYKI = "https://coachplus.streamlit.app/?strona=prywatnosc"
 
     st.markdown(f"""
         <style>

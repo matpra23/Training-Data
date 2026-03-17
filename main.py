@@ -802,7 +802,9 @@ with tab2:
                                 else:
                                     user_ref.collection('historia_treningow').document(str(act_id)).set(act)
                                 
-                            st.success(f"✅ Baza gotowa! Zapisano {zapisane_treningi} treningów z historii.")
+                            st.success(f"Baza gotowa! Zapisano {zapisane_treningi} treningów z historii.")
+                            time.sleep(2)
+                            st.rerun()
                         else:
                             st.warning("Nie udało się pobrać historii ze Stravy.")
                             

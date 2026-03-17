@@ -195,19 +195,26 @@ def check_password():
         return True
 
     # 2. Ekran logowania (jeśli nie jest zalogowany)
-    st.markdown("## Panel Trenera - Logowanie")
+    # Tworzymy 3 kolumny, środkowa (col2) będzie naszym "okienkiem"
+    # Zmieniamy proporcje z [1, 2, 1] na [1, 1.2, 1], żeby okienko nie było tak ogromnie szerokie na dużych ekranach
+    col1, col2, col3 = st.columns([1, 1.2, 1]) 
     
-    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        # Przenosimy nagłówek DO ŚRODKA kolumny i centrujemy go CSS-em
+        st.write("") # Daje lekki odstęp od góry
+        st.markdown("<h2 style='text-align: center;'>🔐 Panel Trenera</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #888888; margin-bottom: 20px;'>Zaloguj się do swojego konta, aby zarządzać zawodnikami</p>", unsafe_allow_html=True)
+        
         with st.form("login_form"):
             email = st.text_input("Adres e-mail")
             password = st.text_input("Hasło", type="password")
-            submit = st.form_submit_button("Zaloguj się", type="primary")
+            
+            # NOWOŚĆ: use_container_width=True rozciągnie przycisk na całą szerokość formularza!
+            submit = st.form_submit_button("Zaloguj się", type="primary", use_container_width=True)
 
             if submit:
                 if email and password:
                     with st.spinner("Weryfikacja..."):
-                        # Pukamy do drzwi API Firebase Auth
                         url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={api_key}"
                         payload = {
                             "email": email,
@@ -218,14 +225,12 @@ def check_password():
 
                         if response.status_code == 200:
                             data = response.json()
-                            # SUKCES! Zapisujemy unikalne ID trenera do pamięci przeglądarki
                             st.session_state.user_id = data['localId']
                             st.session_state.email = data['email']
                             st.success("Zalogowano pomyślnie!")
                             time.sleep(1)
                             st.rerun()
                         else:
-                            # BŁĄD LOGOWANIA
                             error_msg = response.json().get("error", {}).get("message", "")
                             if error_msg in ["INVALID_LOGIN_CREDENTIALS", "INVALID_PASSWORD", "EMAIL_NOT_FOUND"]:
                                 st.error("Błędny adres e-mail lub hasło.")

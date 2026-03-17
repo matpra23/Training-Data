@@ -237,11 +237,15 @@ def check_password():
     return False
 # 
 def load_db():
-    """Wczytuje bazę prosto z chmury Firebase (Firestore)"""
+    """Wczytuje bazę prosto z chmury Firebase (TYLKO dla zalogowanego trenera)"""
     db = {}
     try:
-        # Pobieramy wszystkich dokumenty (zawodników) z kolekcji "zawodnicy"
-        docs = fire_db.collection('zawodnicy-v2').stream()
+        # 1. Bierzemy ID trenera, który aktualnie używa aplikacji
+        obecny_trener_id = st.session_state.user_id
+        
+        # 2. Mówimy Firebase: "Daj mi tylko dokumenty, gdzie pole trener_id to ID tego trenera"
+        docs = fire_db.collection('zawodnicy-v2').where('trener_id', '==', obecny_trener_id).stream()
+        
         for doc in docs:
             db[doc.id] = doc.to_dict()
     except Exception as e:
@@ -746,13 +750,14 @@ with tab2:
                     else:
                         st.warning("Uwaga: Udało się pobrać tokeny, ale Strava nie oddała ID zawodnika.")
 
-                # 3. Zapis do Firebase
+                # 3. Zapis do naszej bazy Firebase
                 db = load_db()
                 db[name_input] = {
                     'athlete_id': athlete_id,
                     'access_token': nowe_dane['access_token'],
                     'refresh_token': nowe_dane['refresh_token'],
-                    'expires_at': nowe_dane['expires_at']
+                    'expires_at': nowe_dane['expires_at'],
+                    'trener_id': st.session_state.user_id
                 }
                 save_db(db, zmieniony_zawodnik=name_input)
                 st.success(f"Sukces! Dodano zawodnika: {name_input} (ID: {athlete_id})")

@@ -585,6 +585,9 @@ with tab1:
                 wybrane_typy.append("Inne")
 
             if st.button("Pobierz i filtruj treningi"):
+                st.session_state.pokaz_tabele = True
+
+            if st.session_state.get("pokaz_tabele", False):
                 with st.spinner('Wczytuję dane z bazy...'):
                     try:
                         # 1. Czytanie z Firebase

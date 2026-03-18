@@ -140,7 +140,7 @@ if query_params.get("strona") == "sukces":
 
 def render_footer():
     """Wyświetla stopkę na dole strony"""
-    LINK_DO_POLITYKI = "https://coachplus.streamlit.app/?strona=prywatnosc"
+    LINK_DO_POLITYKI = "https://app.coachplus.pl/?strona=prywatnosc"
 
     st.markdown(f"""
         <style>
@@ -782,7 +782,7 @@ with tab2:
     client = Client()
     auth_url = client.authorization_url(
         client_id=MY_CLIENT_ID,
-        redirect_uri='https://td-analysis.streamlit.app/?strona=sukces',
+        redirect_uri='https://app.coachplus.pl/?strona=sukces',
         scope=['activity:read_all']
     )
     

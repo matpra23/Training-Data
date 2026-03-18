@@ -32,7 +32,7 @@ except FileNotFoundError:
 os.environ["SILENCE_TOKEN_WARNINGS"] = "true"
 
 # Plik bazy danych
-DB_FILE = 'zawodnicy.json'
+DB_FILE = 'zawodnicy-v2.json'
 
 # Logo aplikacji
 st.logo(
@@ -51,7 +51,7 @@ if not firebase_admin._apps:
 fire_db = firestore.client()
 
 # ==========================================
-# 🚦 ROUTER (STEROWANIE STRONAMI)
+# ROUTER (STEROWANIE STRONAMI)
 # ==========================================
 
 query_params = st.query_params
@@ -66,39 +66,44 @@ if query_params.get("strona") == "prywatnosc":
 
     st.markdown("""
     # Polityka Prywatności
-    **Data ostatniej aktualizacji:** 3 marca 2026 r.
+    **Data ostatniej aktualizacji:** 17 marca 2026 r.
 
-    Niniejsza Polityka Prywatności określa, w jaki sposób aplikacja **CoachPlus Dashboard** ("my", "nasza aplikacja") zbiera, przetwarza i chroni Twoje dane osobowe w związku z korzystaniem z integracji z API serwisu Strava.
+    Niniejsza Polityka Prywatności określa, w jaki sposób aplikacja **CoachPlus Dashboard** ("my", "nasza aplikacja") zbiera, przetwarza i chroni dane osobowe Trenerów oraz Zawodników w związku z korzystaniem z platformy i integracji z API serwisu Strava.
 
     ## 1. Wprowadzenie
-    Aplikacja jest wewnętrznym narzędziem analitycznym stworzonym na potrzeby współpracy trenerskiej. Jej głównym celem jest wizualizacja danych treningowych, co pozwala trenerom i zawodnikom na lepszą analizę wyników oraz precyzyjne dostosowywanie planów treningowych.
+    Aplikacja jest platformą analityczną (SaaS) stworzoną na potrzeby współpracy trenerskiej. Jej głównym celem jest bezpieczne gromadzenie i wizualizacja danych treningowych, co pozwala trenerom i zawodnikom na lepszą analizę wyników.
 
     ## 2. Jakie dane zbieramy?
-    Nie pobieramy żadnych Twoich danych bez Twojej wyraźnej, dobrowolnej zgody. Po autoryzacji naszej aplikacji za pośrednictwem serwisu Strava, uzyskujemy dostęp do następujących informacji:
-    * **Dane profilowe:** Imię i nazwisko (lub pseudonim podany trenerowi).
-    * **Dane o aktywnościach:** Typy aktywności (bieganie, rower, pływanie itp.), dystans, czas trwania, tempo/prędkość, tętno (w tym strefy tętna) oraz daty treningów.
-    * **Dane autoryzacyjne:** Tokeny dostępu (klucze API) niezbędne do utrzymania bezpiecznego połączenia z Twoim kontem.
+    Nie pobieramy żadnych danych bez Twojej wyraźnej, dobrowolnej zgody. 
+    
+    **Jeśli jesteś Zawodnikiem (integracja ze Stravą):**
+    * **Dane profilowe:** Imię i nazwisko (lub pseudonim podany trenerowi) oraz unikalne ID ze Stravy.
+    * **Dane o aktywnościach:** Pobieramy i zapisujemy historię Twoich treningów, w tym: typy aktywności, dystans, czas trwania, tempo/prędkość, tętno (w tym strefy tętna) oraz daty treningów.
+    * **Dane autoryzacyjne:** Tokeny dostępu niezbędne do utrzymania bezpiecznego połączenia (Webhooki) z Twoim kontem.
+
+    **Jeśli jesteś Trenerem (korzystasz z panelu):**
+    * **Dane logowania:** Adres e-mail oraz bezpiecznie zaszyfrowane hasło uwierzytelniające w systemie.
 
     ## 3. Jak wykorzystujemy Twoje dane?
     Zebrane dane są wykorzystywane **wyłącznie w celach szkoleniowych i analitycznych**, w tym do:
     * Generowania statystyk, tabel i wykresów w panelu aplikacji.
-    * Umożliwienia Twojemu trenerowi monitorowania postępów, obciążeń treningowych oraz stref intensywności.
+    * Umożliwienia Twojemu trenerowi monitorowania postępów i stref intensywności na bieżąco.
     
-    **Nie wykorzystujemy** Twoich danych do celów reklamowych, marketingowych ani do żadnych innych działań komercyjnych niezwiązanych bezpośrednio z usługą trenerską.
+    **Nie wykorzystujemy** Twoich danych do celów reklamowych, marketingowych ani do żadnych innych działań komercyjnych.
 
-    ## 4. Przechowywanie i udostępnianie danych
-    **Nigdy nie sprzedajemy Twoich danych osobowych.**
+    ## 4. Przechowywanie, bezpieczeństwo i izolacja danych
+    **Nigdy nie sprzedajemy danych osobowych.**
     
-    Szczegółowe dane dotyczące Twoich treningów nie są trwale magazynowane na naszych serwerach – są pobierane i przetwarzane w czasie rzeczywistym na żądanie trenera. 
-    W naszej bezpiecznej chmurowej bazie danych (Google Firebase) przechowujemy wyłącznie Twoją nazwę użytkownika oraz tokeny autoryzacyjne, które pozwalają aplikacji na komunikację ze Stravą. Nie udostępniamy tych danych żadnym podmiotom trzecim, z wyjątkiem sytuacji wymaganych przez prawo.
+    Wszystkie dane (w tym historia treningów oraz tokeny) są bezpiecznie przechowywane w naszej chmurowej bazie danych (Google Firebase). 
+    Aplikacja wykorzystuje ścisłą **izolację danych (Multi-tenancy)**. Oznacza to, że Twoje dane treningowe są kryptograficznie przypisane wyłącznie do konta Twojego Trenera. Żaden inny trener korzystający z naszej platformy nie ma technicznej możliwości wglądu w Twój profil ani Twoje treningi. 
 
     ## 5. Twoje prawa i kontrola nad danymi
-    Masz pełną kontrolę nad swoimi danymi i w każdej chwili możesz zrezygnować z integracji:
-    * **Cofnięcie dostępu:** Możesz w dowolnym momencie odłączyć naszą aplikację, przechodząc do ustawień swojego konta: [Strava Settings > My Apps](https://www.strava.com/settings/apps) i klikając "Revoke Access" (Cofnij dostęp).
-    * **Całkowite usunięcie z bazy:** Aby trwale usunąć swoje imię oraz wygasłe tokeny z bazy danych aplikacji, skontaktuj się bezpośrednio ze swoim trenerem, który usunie Twój profil jednym kliknięciem z poziomu panelu.
+    Masz pełną kontrolę nad swoimi danymi:
+    * **Wstrzymanie synchronizacji:** Możesz w dowolnym momencie odłączyć naszą aplikację, przechodząc do ustawień swojego konta: [Strava Settings > My Apps](https://www.strava.com/settings/apps) i klikając "Revoke Access" (Cofnij dostęp).
+    * **Całkowite usunięcie z bazy:** Aby trwale usunąć swój profil oraz całą zapisaną historię treningów z naszej bazy danych, skontaktuj się ze swoim trenerem. Usunięcie profilu przez trenera z poziomu panelu powoduje natychmiastowe i bezpowrotne wykasowanie wszystkich Twoich danych z naszych serwerów.
 
     ## 6. Kontakt
-    Jeśli masz jakiekolwiek pytania dotyczące niniejszej Polityki Prywatności, skontaktuj się z administratorem/deweloperem aplikacji:
+    Jeśli masz jakiekolwiek pytania dotyczące niniejszej Polityki Prywatności, skontaktuj się z administratorem platformy:
 
     **Email:** intmondev@gmail.com
 
@@ -135,7 +140,7 @@ if query_params.get("strona") == "sukces":
 
 def render_footer():
     """Wyświetla stopkę na dole strony"""
-    LINK_DO_POLITYKI = "https://td-analysis.streamlit.app/?strona=prywatnosc"
+    LINK_DO_POLITYKI = "https://app.coachplus.pl/?strona=prywatnosc"
 
     st.markdown(f"""
         <style>
@@ -175,35 +180,78 @@ def render_footer():
         """, unsafe_allow_html=True)
 
 def check_password():
-    """Obsługa logowania hasłem głównym"""
-    if "APP_PASSWORD" not in st.secrets:
-        st.error("Nie skonfigurowano hasła w secrets.toml!")
+    """Obsługa logowania przez Firebase Authentication (E-mail i Hasło)"""
+    if "FIREBASE_WEB_API_KEY" not in st.secrets:
+        st.error("Brak klucza FIREBASE_WEB_API_KEY w secrets.toml!")
         return False
 
-    if "password_correct" not in st.session_state:
-        st.session_state.password_correct = False
+    api_key = st.secrets["FIREBASE_WEB_API_KEY"]
 
-    if st.session_state.password_correct:
+    # 1. Sprawdzamy, czy trener jest już zalogowany w tej sesji
+    if "user_id" in st.session_state:
+        # Pasek boczny z informacją o zalogowanym trenerze i przyciskiem wylogowania
+        with st.sidebar:
+            st.markdown(f"Zalogowany jako:<br>**{st.session_state.email}**", unsafe_allow_html=True)
+            if st.button("Wyloguj się"):
+                # Czyszczenie sesji
+                del st.session_state["user_id"]
+                del st.session_state["email"]
+                st.rerun()
         return True
 
-    st.markdown("## Dashboard - Logowanie")
-    password = st.text_input("Podaj hasło dostępu", type="password")
+    # 2. Ekran logowania (jeśli nie jest zalogowany)
+    col1, col2, col3 = st.columns([1, 1.2, 1]) 
     
-    if st.button("Zaloguj"):
-        if password == st.secrets["APP_PASSWORD"]:
-            st.session_state.password_correct = True
-            st.rerun()
-        else:
-            st.error("Błędne hasło")
-            
-    return False
+    with col2:
+        st.write("")
+        st.markdown("<h2 style='text-align: center;'>Panel Trenera</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #888888; margin-bottom: 20px;'>Zaloguj się do swojego konta, aby zarządzać zawodnikami</p>", unsafe_allow_html=True)
+        
+        with st.form("login_form"):
+            email = st.text_input("Adres e-mail")
+            password = st.text_input("Hasło", type="password")
 
+            submit = st.form_submit_button("Zaloguj się", type="primary", use_container_width=True)
+
+            if submit:
+                if email and password:
+                    with st.spinner("Weryfikacja..."):
+                        url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={api_key}"
+                        payload = {
+                            "email": email,
+                            "password": password,
+                            "returnSecureToken": True
+                        }
+                        response = requests.post(url, json=payload)
+
+                        if response.status_code == 200:
+                            data = response.json()
+                            st.session_state.user_id = data['localId']
+                            st.session_state.email = data['email']
+                            st.success("Zalogowano pomyślnie!")
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            error_msg = response.json().get("error", {}).get("message", "")
+                            if error_msg in ["INVALID_LOGIN_CREDENTIALS", "INVALID_PASSWORD", "EMAIL_NOT_FOUND"]:
+                                st.error("Błędny adres e-mail lub hasło.")
+                            else:
+                                st.error(f"Wystąpił błąd: {error_msg}")
+                else:
+                    st.warning("Wpisz e-mail i hasło.")
+                    
+    return False
+# 
 def load_db():
-    """Wczytuje bazę prosto z chmury Firebase (Firestore)"""
+    """Wczytuje bazę prosto z chmury Firebase (TYLKO dla zalogowanego trenera)"""
     db = {}
     try:
-        # Pobieramy wszystkich dokumenty (zawodników) z kolekcji "zawodnicy"
-        docs = fire_db.collection('zawodnicy').stream()
+        # 1. Bierzemy ID trenera, który aktualnie używa aplikacji
+        obecny_trener_id = st.session_state.user_id
+        
+        # 2. Mówimy Firebase: "Daj mi tylko dokumenty, gdzie pole trener_id to ID tego trenera"
+        docs = fire_db.collection('zawodnicy-v2').where('trener_id', '==', obecny_trener_id).stream()
+        
         for doc in docs:
             db[doc.id] = doc.to_dict()
     except Exception as e:
@@ -215,7 +263,7 @@ def save_db(db, zmieniony_zawodnik=None):
     try:
         # Zapisujemy lub aktualizujemy dane każdego zawodnika w kolekcji
         for imie, data in db.items():
-            fire_db.collection('zawodnicy').document(imie).set(data)
+            fire_db.collection('zawodnicy-v2').document(imie).set(data)
             
         # Zostawiamy powiadomienie na Discordzie ze szczegółami
         if "DISCORD_WEBHOOK" in st.secrets:
@@ -248,22 +296,39 @@ def extract_number(value, type_hint="number"):
     except: return 0.0
 
 def parse_token_response(response):
-    """Bezpiecznie wyciąga tokeny, niezależnie od tego, czy stravalib zwróci słownik, czy obiekt."""
-    # Jeśli stravalib zwróci krotkę (w niektórych wersjach tak jest)
+    """Bezpiecznie wyciąga tokeny i ID zawodnika, niezależnie od tego, czy stravalib zwróci słownik, czy obiekt."""
     if isinstance(response, tuple):
         response = response[0]
         
+    # Przygotowujemy zmienną na ID
+    athlete_id = None
+        
     if isinstance(response, dict):
+        # Wyciąganie ID ze słownika
+        athlete_data = response.get('athlete', {})
+        if isinstance(athlete_data, dict):
+            athlete_id = athlete_data.get('id')
+            
         return {
             'access_token': response.get('access_token'),
             'refresh_token': response.get('refresh_token'),
-            'expires_at': response.get('expires_at')
+            'expires_at': response.get('expires_at'),
+            'athlete_id': athlete_id  # <--- Dodane pole!
         }
     else:
+        # Wyciąganie ID z obiektu
+        athlete_data = getattr(response, 'athlete', None)
+        if athlete_data:
+            if isinstance(athlete_data, dict):
+                athlete_id = athlete_data.get('id')
+            else:
+                athlete_id = getattr(athlete_data, 'id', None)
+                
         return {
             'access_token': getattr(response, 'access_token', None),
             'refresh_token': getattr(response, 'refresh_token', None),
-            'expires_at': getattr(response, 'expires_at', None)
+            'expires_at': getattr(response, 'expires_at', None),
+            'athlete_id': athlete_id  # <--- Dodane pole!
         }
 
 # ==========================================
@@ -276,7 +341,53 @@ if not check_password():
     st.stop()
 
 # ==========================================
-# 📱 GŁÓWNY INTERFEJS APLIKACJI
+# OKNO MODALNE (POP-UP) Z ANALIZĄ
+# ==========================================
+@st.dialog("Szczegóły Treningu", width="large")
+def pokaz_analize(trening_id, zawodnik_imie):
+    with st.spinner("Ładowanie analizy..."):
+        try:
+            doc_ref = fire_db.collection('zawodnicy-v2').document(zawodnik_imie).collection('historia_treningow').document(str(trening_id))
+            doc = doc_ref.get()
+
+            if doc.exists:
+                trening_dane = doc.to_dict()
+                
+                st.markdown(f"### {trening_dane.get('name', 'Brak nazwy')}")
+                st.markdown(f"**Data:** {trening_dane.get('start_date_local', '')[:10]}")
+                st.write("---")
+
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Max Tętno", f"{trening_dane.get('max_heartrate', '-')} bpm")
+                m2.metric("Śr. Kadencja", f"{trening_dane.get('average_cadence', '-')} spm")
+                m3.metric("Przewyższenie", f"{trening_dane.get('total_elevation_gain', '-')} m")
+                
+                st.write("---")
+                
+                if 'splits_metric' in trening_dane:
+                    st.markdown("#### ⏱️ Splity")
+                    splits = []
+                    for split in trening_dane['splits_metric']:
+                        speed_ms = split.get('average_speed', 0)
+                        tempo_split = "-"
+                        if speed_ms > 0:
+                            p_dec = (1000 / speed_ms) / 60
+                            tempo_split = f"{int(p_dec)}:{int((p_dec - int(p_dec)) * 60):02d}"
+                            
+                        splits.append({
+                            "KM": split.get('split', '-'),
+                            "Tempo": tempo_split,
+                            "Śr. Tętno": round(split.get('average_heartrate', 0)),
+                            "Wznios": split.get('elevation_difference', 0)
+                        })
+                    st.dataframe(pd.DataFrame(splits), use_container_width=True, hide_index=True)
+                else:
+                    st.info("Brak szczegółowych międzyczasów dla tego treningu.")
+        except Exception as e:
+            st.error(f"Błąd odczytu bazy: {e}")
+
+# ==========================================
+# GŁÓWNY INTERFEJS APLIKACJI
 # ==========================================
 
 st.title("Panel Trenera")
@@ -300,9 +411,28 @@ with tab1:
             # --- BEZPIECZNA STREFA USUWANIA UŻYTKOWNIKÓW---
             with st.expander("⚙️ Zarządzanie zawodnikiem"):
                 st.warning(f"Czy na pewno chcesz usunąć zawodnika **{wybrany_imie}**? Usunięcie z bazy jest nieodwracalne.")
-                if st.button(f"🗑️ Ostatecznie usuń: {wybrany_imie}", type="primary"):
-                    # 1. Usuwamy dokument prosto z chmury!
-                    fire_db.collection('zawodnicy').document(wybrany_imie).delete()
+                if st.button(f"Ostatecznie usuń: {wybrany_imie}", type="primary"):
+                    with st.spinner("Usuwam historię treningów i czyszczę bazę... 🧹"):
+                        # 1. Wchodzimy do podkolekcji z treningami i kasujemy je jeden po drugim
+                        treningi_ref = fire_db.collection('zawodnicy-v2').document(wybrany_imie).collection('historia_treningow')
+                        treningi_docs = treningi_ref.stream()
+                        
+                        licznik = 0
+                        for doc in treningi_docs:
+                            doc.reference.delete()
+                            licznik += 1
+                            
+                        # 2. Dopiero jak teczka z treningami jest pusta, usuwamy głównego zawodnika (tokeny)
+                        fire_db.collection('zawodnicy-v2').document(wybrany_imie).delete()
+                    
+                    # 3. Powiadomienie na Discordzie
+                    if "DISCORD_WEBHOOK" in st.secrets:
+                        wiadomosc_usuniecie = f"🗑️ **Zawodnik Usunięty!** (Skasowano {licznik} treningów oraz profil: **{wybrany_imie}**)"
+                        requests.post(st.secrets["DISCORD_WEBHOOK"], json={"content": wiadomosc_usuniecie})
+                        
+                    st.success(f"Pomyślnie usunięto zawodnika i wyczyszczono jego {licznik} treningów z bazy!")
+                    time.sleep(2) # Dajemy 2 sekundy na przeczytanie komunikatu
+                    st.rerun()
                     
                     # 2. Powiadomienie na Discordzie
                     if "DISCORD_WEBHOOK" in st.secrets:
@@ -384,58 +514,64 @@ with tab1:
                 wybrane_typy.append("Inne")
 
             if st.button("Pobierz i filtruj treningi"):
-                with st.spinner('Pobieram i przetwarzam dane...'):
+                st.session_state.pokaz_tabele = True
+
+            if st.session_state.get("pokaz_tabele", False):
+                with st.spinner('Wczytuję dane z bazy...'):
                     try:
-                        activities = client.get_activities(after=str(start_date), before=str(end_date), limit=100)
+                        # 1. Czytanie z Firebase
+                        treningi_ref = fire_db.collection('zawodnicy-v2').document(wybrany_imie).collection('historia_treningow')
+                        docs = treningi_ref.stream()
                         
                         data = []
                         nierozpoznane_typy = set()
                         
-                        # Dodajemy słownik na strefy tętna (czasy w sekundach)
                         hr_zones_aggregated = {
-                            "Z1 (Regeneracja)": 0,
-                            "Z2 (Wytrzymałość)": 0,
-                            "Z3 (Tempo)": 0,
-                            "Z4 (Próg)": 0,
-                            "Z5 (Anaerobowa)": 0
+                            "Z1 (Regeneracja)": 0, "Z2 (Wytrzymałość)": 0, "Z3 (Tempo)": 0,
+                            "Z4 (Próg)": 0, "Z5 (Anaerobowa)": 0
                         }
 
-                        for activity in activities:
-                            # 1. POBIERANIE TYPU
-                            raw_type = getattr(activity, 'sport_type', None)
-                            if not raw_type:
-                                raw_type = activity.type
+                        for doc in docs:
+                            activity = doc.to_dict()
                             
-                            raw_type_str = str(raw_type)\
-                                .replace("root='", "")\
-                                .replace("'", "")\
-                                .replace("ActivityType.", "")
+                            # --- FILTROWANIE PO DACIE ---
+                            start_date_str = activity.get('start_date_local', '')
+                            if not start_date_str:
+                                continue
+                                
+                            # Konwertujemy tekst "2026-03-10T15:30:00Z" na samą datę "2026-03-10"
+                            activity_date_str = start_date_str[:10]
+                            activity_date = pd.to_datetime(activity_date_str).date()
                             
+                            # Jeśli data nie mieści się w filtrze z suwaków, pomijamy ten trening
+                            if not (start_date <= activity_date <= end_date):
+                                continue
+
+                            # --- 1. POBIERANIE TYPU ---
+                            # (Czytamy ze słownika, a nie z obiektu stravalib)
+                            raw_type_str = activity.get('sport_type') or activity.get('type', 'Unknown')
                             polski_typ = TYPE_MAP.get(raw_type_str, "Inne")
                             
                             if polski_typ == "Inne":
                                 nierozpoznane_typy.add(raw_type_str)
 
-                            # 2. PRZELICZANIE
-                            dist_km = round(extract_number(activity.distance) / 1000, 2)
+                            # --- 2. PRZELICZANIE DANYCH ---
+                            dist_km = round(activity.get('distance', 0) / 1000, 2)
                             
-                            # Czas w sekundach do przeliczeń
-                            duration_sec = extract_number(activity.moving_time, "time")
-                            duration_min = int(round(duration_sec / 60)) # Niewidoczne: do rysowania wysokości słupka na osi Y
+                            duration_sec = activity.get('moving_time', 0)
+                            duration_min = int(round(duration_sec / 60)) 
                             
-                            # Tworzymy ładny format tekstowy (np. 1:05:30 albo 45:00) do tabeli
                             h = int(duration_sec // 3600)
                             m = int((duration_sec % 3600) // 60)
                             s = int(duration_sec % 60)
                             czas_str = f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
 
-                            avg_hr = round(extract_number(activity.average_heartrate))
+                            avg_hr = round(activity.get('average_heartrate', 0))
                             
-                            # Tempo
-                            avg_speed_ms = extract_number(activity.average_speed)
+                            avg_speed_ms = activity.get('average_speed', 0)
                             pace_str = "-"
+                            
                             if avg_speed_ms > 0:
-                                # Zmiana tutaj: sprawdzamy czy to Bieganie LUB Bieganie na nartach
                                 if polski_typ in ["Bieganie", "Bieganie na nartach"]:
                                     pace_decimal = (1000 / avg_speed_ms) / 60
                                     p_min = int(pace_decimal)
@@ -449,23 +585,39 @@ with tab1:
                                     p_min = int(pace_decimal)
                                     p_sec = int((pace_decimal - p_min) * 60)
                                     pace_str = f"{p_min}:{p_sec:02d} /100m"
-                                # Opcjonalnie: wiosłowanie zazwyczaj podaje się na 500m, 
-                                # ale na razie zostawiamy bazowe ustawienia dla reszty.
 
-                            activity_url = f"https://www.strava.com/activities/{activity.id}"
+                            activity_id = activity.get('id')
+                            activity_url = f"https://www.strava.com/activities/{activity_id}"
+                            
+                            wewnetrzny_link = f"?strona=analiza&id={activity_id}&zawodnik={wybrany_imie}"
                             
                             data.append({
-                                "Data": activity.start_date_local.strftime("%Y-%m-%d"),
+                                "Data": activity_date_str,
                                 "Typ Polski": polski_typ,
                                 "Typ": raw_type_str,
-                                "Nazwa": activity.name,
+                                "Nazwa": activity.get('name', 'Brak nazwy'),
                                 "Dystans (km)": dist_km,
                                 "Czas": czas_str,            
                                 "Czas (min)": duration_min, 
                                 "Tętno": avg_hr,
                                 "Tempo": pace_str,
-                                "Link": activity_url
+                                "ID Treningu": activity_id
                             })
+
+                            # --- 3. ODCZYTYWANIE STREF TĘTNA Z BAZY ---
+                            # Sprawdzamy, czy w pobranym JSON-ie zapisaliśmy klucz 'zones'
+                            if activity.get('has_heartrate') and 'zones' in activity:
+                                for z in activity['zones']:
+                                    if z.get('type') == 'heartrate' and 'distribution_buckets' in z:
+                                        buckets = z['distribution_buckets']
+                                        if len(buckets) >= 5:
+                                            # Firebase zapisuje czas w sekundach, wyciągamy go bezpiecznie z get()
+                                            hr_zones_aggregated["Z1 (Regeneracja)"] += buckets[0].get('time', 0)
+                                            hr_zones_aggregated["Z2 (Wytrzymałość)"] += buckets[1].get('time', 0)
+                                            hr_zones_aggregated["Z3 (Tempo)"] += buckets[2].get('time', 0)
+                                            hr_zones_aggregated["Z4 (Próg)"] += buckets[3].get('time', 0)
+                                            hr_zones_aggregated["Z5 (Anaerobowa)"] += buckets[4].get('time', 0)
+
                             # --- POBIERANIE STREF TĘTNA ---
                             # Pobieramy zawsze, jeśli trening w ogóle ma zapisane tętno
                             if getattr(activity, 'has_heartrate', False):
@@ -494,15 +646,12 @@ with tab1:
                             if df_filtered.empty:
                                 st.warning(f"Brak treningów pasujących do filtra: {wybrane_typy}")
                             else:
-                                df_filtered['Nazwa Treningu'] = df_filtered.apply(
-                                    lambda x: f'<a href="{x["Link"]}" target="_blank" style="text-decoration:none; color:#FC4C02; font-weight:bold;">{x["Nazwa"]}</a>', 
-                                    axis=1
-                                )
-
                                 final_df = df_filtered[[
-                                    'Data', 'Typ', 'Nazwa Treningu', 
-                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo'
+                                    'Data', 'Typ', 'Nazwa', 
+                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'ID Treningu'
                                 ]]
+                                
+                                final_df = final_df.sort_values(by="Data", ascending=False)
                                 
                                 c1, c2, c3 = st.columns(3)
                                 c1.metric("Liczba treningów", len(final_df))
@@ -510,10 +659,34 @@ with tab1:
                                 c3.metric("Czas (h)", round(final_df['Czas (min)'].sum() / 60, 1))
 
                                 st.write("---")
+
+                                if "klucz_tabeli" not in st.session_state:
+                                    st.session_state.klucz_tabeli = 0
+                                    
+                                st.markdown("**Kliknij w dowolny wiersz tabeli, aby otworzyć szczegółową analizę treningu!**")
                                 
-                                # W tabeli ukrywamy brzydką, suchą liczbę "Czas (min)"
-                                tabela_html = final_df.drop(columns=['Czas (min)']).to_html(escape=False, index=False)
-                                st.markdown(tabela_html, unsafe_allow_html=True)
+                                event = st.dataframe(
+                                    final_df, 
+                                    key=f"tabela_{st.session_state.klucz_tabeli}",
+                                    use_container_width=True, 
+                                    hide_index=True,
+                                    on_select="rerun",
+                                    selection_mode="single-row"
+                                )
+                                
+                                # Jeśli trener kliknął w jakiś wiersz w tabeli:
+                                if len(event.selection.rows) > 0:
+                                    wybrany_indeks = event.selection.rows[0]
+                                    wybrany_id = final_df.iloc[wybrany_indeks]["ID Treningu"]
+                                    
+                                    # Zabezpieczenie, by okienko nie pop-up'owało się w nieskończoność
+                                    if st.session_state.get("ostatni_trening") != wybrany_id:
+                                        st.session_state.ostatni_trening = wybrany_id
+                                        st.session_state.klucz_tabeli += 1 # <--- Magia! Zmuszamy tabelę do resetu zaznaczenia
+                                        pokaz_analize(wybrany_id, wybrany_imie)
+                                else:
+                                    # Jeśli tabela jest czysta, czyścimy pamięć ostatniego treningu
+                                    st.session_state.ostatni_trening = None
                                 
                                 # --- WYKRES CZASU TRENINGU ---
                                 if "Czas (min)" in final_df.columns and final_df["Czas (min)"].sum() > 0:
@@ -534,7 +707,7 @@ with tab1:
                                         title=tytul_wykresu, 
                                         color=kolor_wg,
                                         # Dodaliśmy dystans do "dymka" z informacjami po najechaniu myszką!
-                                        hover_data=["Nazwa Treningu", "Czas", "Dystans (km)", "Tempo", "Tętno"]
+                                        hover_data=["Nazwa", "Czas", "Dystans (km)", "Tempo", "Tętno"]
                                     )
                                     st.plotly_chart(fig)
                                 
@@ -595,7 +768,7 @@ with tab1:
                                         st.plotly_chart(fig_bar, use_container_width=True)
                                 else:
                                     # Brak danych (brak tętna lub brak konta Premium)
-                                    st.info("ℹ️ Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")
+                                    st.info("Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")
                         else:
                             st.warning("Brak treningów w tym okresie.")
                             
@@ -609,7 +782,7 @@ with tab2:
     client = Client()
     auth_url = client.authorization_url(
         client_id=MY_CLIENT_ID,
-        redirect_uri='https://td-analysis.streamlit.app/?strona=sukces',
+        redirect_uri='https://app.coachplus.pl/?strona=sukces',
         scope=['activity:read_all']
     )
     
@@ -632,23 +805,92 @@ with tab2:
     if st.button("Zapisz zawodnika w bazie"):
         if code_input and name_input:
             try:
+                # 1. Wymiana kodu na tokeny
                 token_response = client.exchange_code_for_token(
                     client_id=MY_CLIENT_ID,
                     client_secret=MY_CLIENT_SECRET,
                     code=code_input
                 )
                 
-                # Bezpieczne wyciągnięcie danych
                 nowe_dane = parse_token_response(token_response)
                 
+                # --- 2. KULOODPORNE POBIERANIE ID ---
+                athlete_id = nowe_dane.get('athlete_id')
+                
+                if not athlete_id:
+                    headers = {'Authorization': f"Bearer {nowe_dane['access_token']}"}
+                    res = requests.get('https://www.strava.com/api/v3/athlete', headers=headers)
+                    if res.status_code == 200:
+                        dane_ze_stravy = res.json()
+                        athlete_id = dane_ze_stravy.get('id')
+                    else:
+                        st.warning("Uwaga: Udało się pobrać tokeny, ale Strava nie oddała ID zawodnika.")
+
+                # 3. Zapis do naszej bazy Firebase
                 db = load_db()
                 db[name_input] = {
+                    'athlete_id': athlete_id,
                     'access_token': nowe_dane['access_token'],
                     'refresh_token': nowe_dane['refresh_token'],
-                    'expires_at': nowe_dane['expires_at']
+                    'expires_at': nowe_dane['expires_at'],
+                    'trener_id': st.session_state.user_id
                 }
                 save_db(db, zmieniony_zawodnik=name_input)
-                st.success(f"Sukces! Dodano zawodnika: {name_input}")
+                st.success(f"Sukces! Dodano zawodnika: {name_input} (ID: {athlete_id})")
+
+                # 4. AUTOMATYCZNE POBIERANIE HISTORII (2 TYGODNIE)
+                with st.spinner('Pobieram historię treningów z ostatnich 14 dni...'):
+                    try:
+                        # Obliczamy timestamp dla daty 14 dni temu
+                        dwa_tygodnie_temu = int(time.time()) - (14 * 24 * 3600)
+                        
+                        headers = {'Authorization': f"Bearer {nowe_dane['access_token']}"}
+                        
+                        # Pobieramy listę aktywności zawodnika od tej daty
+                        res_activities = requests.get(
+                            'https://www.strava.com/api/v3/athlete/activities',
+                            headers=headers,
+                            params={'after': dwa_tygodnie_temu, 'per_page': 50}
+                        )
+                        
+                        if res_activities.status_code == 200:
+                            activities_list = res_activities.json()
+                            
+                            # Referencja do teczki tego zawodnika w bazie
+                            user_ref = fire_db.collection('zawodnicy-v2').document(name_input)
+                            
+                            zapisane_treningi = 0
+                            
+                            for act in activities_list:
+                                act_id = act.get('id')
+                                
+                                # Pobieramy pełne detale treningu, żeby mieć to samo co w Webhooku!
+                                res_detail = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}', headers=headers)
+                                
+                                if res_detail.status_code == 200:
+                                    full_act = res_detail.json()
+                                    
+                                    # --- NOWOŚĆ: POBIERAMY STREFY TĘTNA! ---
+                                    if full_act.get('has_heartrate'):
+                                        res_zones = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}/zones', headers=headers)
+                                        if res_zones.status_code == 200:
+                                            # Doklejamy nową "szufladkę" 'zones' do naszego głównego JSON-a!
+                                            full_act['zones'] = res_zones.json()
+                                            
+                                    # Zapisujemy kompletny JSON (razem ze strefami) do bazy
+                                    user_ref.collection('historia_treningow').document(str(act_id)).set(full_act)
+                                    zapisane_treningi += 1
+                                else:
+                                    user_ref.collection('historia_treningow').document(str(act_id)).set(act)
+                                
+                            st.success(f"Baza gotowa! Zapisano {zapisane_treningi} treningów z historii.")
+                            time.sleep(2)
+                            st.rerun()
+                        else:
+                            st.warning("Nie udało się pobrać historii ze Stravy.")
+                            
+                    except Exception as e:
+                        st.error(f"Błąd podczas pobierania historii: {e}")
                 
             except Exception as e:
                 st.error(f"Błąd autoryzacji: {e}")

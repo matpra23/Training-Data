@@ -659,11 +659,15 @@ with tab1:
                                 c3.metric("Czas (h)", round(final_df['Czas (min)'].sum() / 60, 1))
 
                                 st.write("---")
-                                
+
+                                if "klucz_tabeli" not in st.session_state:
+                                    st.session_state.klucz_tabeli = 0
+                                    
                                 st.markdown("**Kliknij w dowolny wiersz tabeli, aby otworzyć szczegółową analizę treningu!**")
                                 
                                 event = st.dataframe(
                                     final_df, 
+                                    key=f"tabela_{st.session_state.klucz_tabeli}",
                                     use_container_width=True, 
                                     hide_index=True,
                                     on_select="rerun",
@@ -678,9 +682,10 @@ with tab1:
                                     # Zabezpieczenie, by okienko nie pop-up'owało się w nieskończoność
                                     if st.session_state.get("ostatni_trening") != wybrany_id:
                                         st.session_state.ostatni_trening = wybrany_id
-                                        pokaz_analize(wybrany_id, wybrany_imie) # Wywołujemy okno modalne!
+                                        st.session_state.klucz_tabeli += 1 # <--- Magia! Zmuszamy tabelę do resetu zaznaczenia
+                                        pokaz_analize(wybrany_id, wybrany_imie)
                                 else:
-                                    # Jeśli odznaczymy wiersz w tabeli, czyścimy pamięć
+                                    # Jeśli tabela jest czysta, czyścimy pamięć ostatniego treningu
                                     st.session_state.ostatni_trening = None
                                 
                                 # --- WYKRES CZASU TRENINGU ---

@@ -51,7 +51,7 @@ if not firebase_admin._apps:
 fire_db = firestore.client()
 
 # ==========================================
-# 🚦 ROUTER (STEROWANIE STRONAMI)
+# ROUTER (STEROWANIE STRONAMI)
 # ==========================================
 
 query_params = st.query_params
@@ -134,6 +134,69 @@ if query_params.get("strona") == "sukces":
     st.info("Możesz już zamknąć to okno.")
     st.stop()
 
+# --- SCENARIUSZ C: GŁĘBOKA ANALIZA TRENINGU ---
+if query_params.get("strona") == "analiza":
+
+    # Przycisk powrotu na samą górę
+    if st.button("Wróć do panelu trenera"):
+        st.query_params.clear() 
+        st.rerun()              
+
+    trening_id = query_params.get("id")
+    zawodnik_imie = query_params.get("zawodnik")
+
+    if trening_id and zawodnik_imie:
+        with st.spinner("Pobieram dane treningu z bazy..."):
+            try:
+                doc_ref = fire_db.collection('zawodnicy-v2').document(zawodnik_imie).collection('historia_treningow').document(str(trening_id))
+                doc = doc_ref.get()
+
+                if doc.exists:
+                    trening_dane = doc.to_dict()
+                    
+                    st.markdown(f"## Analiza: {trening_dane.get('name', 'Brak nazwy')}")
+                    st.markdown(f"**Zawodnik:** {zawodnik_imie} | **Data:** {trening_dane.get('start_date_local', '')[:10]}")
+                    st.write("---")
+
+                    # GŁÓWNE METRYKI
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("Max Tętno", f"{trening_dane.get('max_heartrate', '-')} bpm")
+                    m2.metric("Śr. Kadencja", f"{trening_dane.get('average_cadence', '-')} spm")
+                    m3.metric("Przewyższenie", f"{trening_dane.get('total_elevation_gain', '-')} m")
+                    m4.metric("Kalorie", f"{trening_dane.get('calories', '-')} kcal")
+                    
+                    st.write("---")
+                    
+                    # TABELA MIĘDZYCZASÓW (KILOMETRÓWKI)
+                    if 'splits_metric' in trening_dane:
+                        st.markdown("### ⏱️ Międzyczasy (Kilometrówki)")
+                        splits = []
+                        for split in trening_dane['splits_metric']:
+                            speed_ms = split.get('average_speed', 0)
+                            tempo_split = "-"
+                            if speed_ms > 0:
+                                p_dec = (1000 / speed_ms) / 60
+                                tempo_split = f"{int(p_dec)}:{int((p_dec - int(p_dec)) * 60):02d}"
+                                
+                            splits.append({
+                                "KM": split.get('split', '-'),
+                                "Tempo": tempo_split,
+                                "Śr. Tętno": round(split.get('average_heartrate', 0)),
+                                "Wzrost (m)": split.get('elevation_difference', 0)
+                            })
+                        
+                        df_splits = pd.DataFrame(splits)
+                        st.dataframe(df_splits, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("Ten trening nie posiada zapisanych międzyczasów kilometrowych.")
+                else:
+                    st.error("Nie znaleziono takiego treningu w bazie.")
+            except Exception as e:
+                st.error(f"Błąd odczytu bazy danych: {e}")
+    else:
+        st.error("Brakujące parametry w linku. Spróbuj ponownie z tabeli głównej.")
+
+    st.stop()
 # ==========================================
 # 🛠️ FUNKCJE POMOCNICZE
 # ==========================================
@@ -540,6 +603,9 @@ with tab1:
                             activity_id = activity.get('id')
                             activity_url = f"https://www.strava.com/activities/{activity_id}"
                             
+                            wewnetrzny_link = f"?strona=analiza&id={activity_id}&zawodnik={wybrany_imie}"
+                            link_analiza = f'<a href="{wewnetrzny_link}" target="_self" style="text-decoration:none; color:#FC4C02; font-weight:bold;">📊 Analiza</a>'
+                            
                             data.append({
                                 "Data": activity_date_str,
                                 "Typ Polski": polski_typ,
@@ -550,7 +616,8 @@ with tab1:
                                 "Czas (min)": duration_min, 
                                 "Tętno": avg_hr,
                                 "Tempo": pace_str,
-                                "Link": activity_url
+                                "Link": activity_url,
+                                "Akcja": link_analiza  # <--- Nowa kolumna!
                             })
 
                             # --- 3. ODCZYTYWANIE STREF TĘTNA Z BAZY ---
@@ -602,7 +669,7 @@ with tab1:
 
                                 final_df = df_filtered[[
                                     'Data', 'Typ', 'Nazwa Treningu', 
-                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo'
+                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'Akcja'
                                 ]]
                                 
                                 final_df = final_df.sort_values(by="Data", ascending=False)
@@ -699,57 +766,6 @@ with tab1:
                                 else:
                                     # Brak danych (brak tętna lub brak konta Premium)
                                     st.info("ℹ️ Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")
-
-                                # ==========================================
-                                # 🔬 GŁĘBOKA ANALIZA POJEDYNCZEGO TRENINGU
-                                # ==========================================
-                                st.write("---")
-                                st.subheader("🔬 Szczegóły treningu")
-                                st.markdown("<p style='color: #888888; font-size: 14px;'>Wybierz trening z listy, aby pominąć Stravę i analizować dane bezpośrednio tutaj.</p>", unsafe_allow_html=True)
-                                
-                                # Tworzymy listę nazw treningów z wybranego okresu
-                                lista_nazw = final_df['Nazwa Treningu'].apply(lambda x: x.split(">")[1].split("<")[0]).tolist()
-                                
-                                wybrane_szczegoly = st.selectbox("Wybierz trening do analizy:", ["-- Wybierz --"] + lista_nazw)
-                                
-                                if wybrane_szczegoly != "-- Wybierz --":
-                                    trening_dane = surowe_treningi.get(wybrane_szczegoly)
-                                    
-                                    if trening_dane:
-                                        # GŁÓWNE METRYKI
-                                        st.markdown(f"### {wybrane_szczegoly}")
-                                        m1, m2, m3, m4 = st.columns(4)
-                                        m1.metric("Max Tętno", f"{trening_dane.get('max_heartrate', '-')} bpm")
-                                        m2.metric("Śr. Kadencja", f"{trening_dane.get('average_cadence', '-')} spm")
-                                        m3.metric("Przewyższenie", f"{trening_dane.get('total_elevation_gain', '-')} m")
-                                        m4.metric("Kalorie", f"{trening_dane.get('calories', '-')} kcal")
-                                        
-                                        st.write("<br>", unsafe_allow_html=True)
-                                        
-                                        # TABELA MIĘDZYCZASÓW (SPLITS)
-                                        if 'splits_metric' in trening_dane:
-                                            st.markdown("#### ⏱️ Międzyczasy (Kilometrówki)")
-                                            splits = []
-                                            for split in trening_dane['splits_metric']:
-                                                # Przeliczanie tempa ze m/s na min/km
-                                                speed_ms = split.get('average_speed', 0)
-                                                tempo_split = "-"
-                                                if speed_ms > 0:
-                                                    p_dec = (1000 / speed_ms) / 60
-                                                    tempo_split = f"{int(p_dec)}:{int((p_dec - int(p_dec)) * 60):02d}"
-                                                    
-                                                splits.append({
-                                                    "KM": split.get('split', '-'),
-                                                    "Tempo": tempo_split,
-                                                    "Śr. Tętno": round(split.get('average_heartrate', 0)),
-                                                    "Wzrost (m)": split.get('elevation_difference', 0)
-                                                })
-                                            
-                                            df_splits = pd.DataFrame(splits)
-                                            # Używamy st.dataframe, żeby tabela była interaktywna
-                                            st.dataframe(df_splits, use_container_width=True, hide_index=True)
-                                        else:
-                                            st.info("Ten trening nie posiada zapisanych międzyczasów kilometrowych.")
                         else:
                             st.warning("Brak treningów w tym okresie.")
                             

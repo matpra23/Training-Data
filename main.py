@@ -134,68 +134,6 @@ if query_params.get("strona") == "sukces":
     st.info("Możesz już zamknąć to okno.")
     st.stop()
 
-# --- SCENARIUSZ C: GŁĘBOKA ANALIZA TRENINGU ---
-if query_params.get("strona") == "analiza":
-
-    if st.button("Wróć do panelu trenera"):
-        st.query_params.clear() 
-        st.rerun()              
-
-    trening_id = query_params.get("id")
-    zawodnik_imie = query_params.get("zawodnik")
-
-    if trening_id and zawodnik_imie:
-        with st.spinner("Pobieram dane treningu z bazy..."):
-            try:
-                doc_ref = fire_db.collection('zawodnicy-v2').document(zawodnik_imie).collection('historia_treningow').document(str(trening_id))
-                doc = doc_ref.get()
-
-                if doc.exists:
-                    trening_dane = doc.to_dict()
-                    
-                    st.markdown(f"## Analiza: {trening_dane.get('name', 'Brak nazwy')}")
-                    st.markdown(f"**Zawodnik:** {zawodnik_imie} | **Data:** {trening_dane.get('start_date_local', '')[:10]}")
-                    st.write("---")
-
-                    # GŁÓWNE METRYKI
-                    m1, m2, m3 = st.columns(3)
-                    m1.metric("Max Tętno", f"{trening_dane.get('max_heartrate', '-')} bpm")
-                    m2.metric("Śr. Kadencja", f"{trening_dane.get('average_cadence', '-')} spm")
-                    m3.metric("Przewyższenie", f"{trening_dane.get('total_elevation_gain', '-')} m")
-                    
-                    st.write("---")
-                    
-                    # TABELA MIĘDZYCZASÓW (KILOMETRÓWKI)
-                    if 'splits_metric' in trening_dane:
-                        st.markdown("### Splity")
-                        splits = []
-                        for split in trening_dane['splits_metric']:
-                            speed_ms = split.get('average_speed', 0)
-                            tempo_split = "-"
-                            if speed_ms > 0:
-                                p_dec = (1000 / speed_ms) / 60
-                                tempo_split = f"{int(p_dec)}:{int((p_dec - int(p_dec)) * 60):02d}"
-                                
-                            splits.append({
-                                "KM": split.get('split', '-'),
-                                "Tempo": tempo_split,
-                                "Śr. Tętno": round(split.get('average_heartrate', 0)),
-                                "Wznios": split.get('elevation_difference', 0)
-                            })
-                        
-                        df_splits = pd.DataFrame(splits)
-                        st.dataframe(df_splits, use_container_width=True, hide_index=True)
-                    else:
-                        st.info("Ten trening nie posiada zapisanych międzyczasów kilometrowych.")
-                else:
-                    st.error("Nie znaleziono takiego treningu w bazie.")
-            except Exception as e:
-                st.error(f"Błąd odczytu bazy danych: {e}")
-    else:
-        st.error("Brakujące parametry w linku. Spróbuj ponownie z tabeli głównej.")
-
-    st.stop()
-
 # ==========================================
 # 🛠️ FUNKCJE POMOCNICZE
 # ==========================================
@@ -403,17 +341,10 @@ if not check_password():
     st.stop()
 
 # ==========================================
-# 🚦 WIRTUALNY ROUTER - TRYB ANALIZY
+# OKNO MODALNE (POP-UP) Z ANALIZĄ
 # ==========================================
-
-if st.session_state.get("widok_analizy", False):
-    if st.button("Wróć do panelu trenera"):
-        st.session_state.widok_analizy = False
-        st.rerun()
-        
-    trening_id = st.session_state.get("analiza_id")
-    zawodnik_imie = st.session_state.get("analiza_zawodnik")
-    
+@st.dialog("Szczegóły Treningu", width="large")
+def pokaz_analize(trening_id, zawodnik_imie):
     with st.spinner("Ładowanie analizy..."):
         try:
             doc_ref = fire_db.collection('zawodnicy-v2').document(zawodnik_imie).collection('historia_treningow').document(str(trening_id))
@@ -422,8 +353,8 @@ if st.session_state.get("widok_analizy", False):
             if doc.exists:
                 trening_dane = doc.to_dict()
                 
-                st.markdown(f"## 🔬 Analiza: {trening_dane.get('name', 'Brak nazwy')}")
-                st.markdown(f"**Zawodnik:** {zawodnik_imie} | **Data:** {trening_dane.get('start_date_local', '')[:10]}")
+                st.markdown(f"### {trening_dane.get('name', 'Brak nazwy')}")
+                st.markdown(f"**Data:** {trening_dane.get('start_date_local', '')[:10]}")
                 st.write("---")
 
                 m1, m2, m3 = st.columns(3)
@@ -434,7 +365,7 @@ if st.session_state.get("widok_analizy", False):
                 st.write("---")
                 
                 if 'splits_metric' in trening_dane:
-                    st.markdown("### ⏱️ Splity")
+                    st.markdown("#### ⏱️ Splity")
                     splits = []
                     for split in trening_dane['splits_metric']:
                         speed_ms = split.get('average_speed', 0)
@@ -455,10 +386,8 @@ if st.session_state.get("widok_analizy", False):
         except Exception as e:
             st.error(f"Błąd odczytu bazy: {e}")
 
-    st.stop()
-
 # ==========================================
-# 📱 GŁÓWNY INTERFEJS APLIKACJI
+# GŁÓWNY INTERFEJS APLIKACJI
 # ==========================================
 
 st.title("Panel Trenera")
@@ -746,11 +675,13 @@ with tab1:
                                     wybrany_indeks = event.selection.rows[0]
                                     wybrany_id = final_df.iloc[wybrany_indeks]["ID Treningu"]
                                     
-                                    # Uruchamiamy nasz Wirtualny Router!
-                                    st.session_state.widok_analizy = True
-                                    st.session_state.analiza_id = wybrany_id
-                                    st.session_state.analiza_zawodnik = wybrany_imie
-                                    st.rerun()
+                                    # Zabezpieczenie, by okienko nie pop-up'owało się w nieskończoność
+                                    if st.session_state.get("ostatni_trening") != wybrany_id:
+                                        st.session_state.ostatni_trening = wybrany_id
+                                        pokaz_analize(wybrany_id, wybrany_imie) # Wywołujemy okno modalne!
+                                else:
+                                    # Jeśli odznaczymy wiersz w tabeli, czyścimy pamięć
+                                    st.session_state.ostatni_trening = None
                                 
                                 # --- WYKRES CZASU TRENINGU ---
                                 if "Czas (min)" in final_df.columns and final_df["Czas (min)"].sum() > 0:

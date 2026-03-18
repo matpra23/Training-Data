@@ -714,13 +714,8 @@ with tab1:
                             if df_filtered.empty:
                                 st.warning(f"Brak treningów pasujących do filtra: {wybrane_typy}")
                             else:
-                                df_filtered['Nazwa Treningu'] = df_filtered.apply(
-                                    lambda x: f'<a href="{x["Link"]}" target="_blank" style="text-decoration:none; color:#FC4C02; font-weight:bold;">{x["Nazwa"]}</a>', 
-                                    axis=1
-                                )
-
                                 final_df = df_filtered[[
-                                    'Data', 'Typ', 'Nazwa Treningu', 
+                                    'Data', 'Typ', 'Nazwa', 
                                     'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'ID Treningu'
                                 ]]
                                 
@@ -773,7 +768,7 @@ with tab1:
                                         title=tytul_wykresu, 
                                         color=kolor_wg,
                                         # Dodaliśmy dystans do "dymka" z informacjami po najechaniu myszką!
-                                        hover_data=["Nazwa Treningu", "Czas", "Dystans (km)", "Tempo", "Tętno"]
+                                        hover_data=["Nazwa", "Czas", "Dystans (km)", "Tempo", "Tętno"]
                                     )
                                     st.plotly_chart(fig)
                                 
@@ -834,7 +829,7 @@ with tab1:
                                         st.plotly_chart(fig_bar, use_container_width=True)
                                 else:
                                     # Brak danych (brak tętna lub brak konta Premium)
-                                    st.info("ℹ️ Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")
+                                    st.info("Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")
                         else:
                             st.warning("Brak treningów w tym okresie.")
                             

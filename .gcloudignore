@@ -1,0 +1,5 @@
+.git/
+__pycache__/
+.venv/
+venv/
+zawodnicy-v2.json

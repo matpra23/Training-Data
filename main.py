@@ -137,7 +137,6 @@ if query_params.get("strona") == "sukces":
 # --- SCENARIUSZ C: GŁĘBOKA ANALIZA TRENINGU ---
 if query_params.get("strona") == "analiza":
 
-    # Przycisk powrotu na samą górę
     if st.button("Wróć do panelu trenera"):
         st.query_params.clear() 
         st.rerun()              
@@ -159,17 +158,16 @@ if query_params.get("strona") == "analiza":
                     st.write("---")
 
                     # GŁÓWNE METRYKI
-                    m1, m2, m3, m4 = st.columns(4)
+                    m1, m2, m3 = st.columns(3)
                     m1.metric("Max Tętno", f"{trening_dane.get('max_heartrate', '-')} bpm")
                     m2.metric("Śr. Kadencja", f"{trening_dane.get('average_cadence', '-')} spm")
                     m3.metric("Przewyższenie", f"{trening_dane.get('total_elevation_gain', '-')} m")
-                    m4.metric("Kalorie", f"{trening_dane.get('calories', '-')} kcal")
                     
                     st.write("---")
                     
                     # TABELA MIĘDZYCZASÓW (KILOMETRÓWKI)
                     if 'splits_metric' in trening_dane:
-                        st.markdown("### ⏱️ Międzyczasy (Kilometrówki)")
+                        st.markdown("### Splity")
                         splits = []
                         for split in trening_dane['splits_metric']:
                             speed_ms = split.get('average_speed', 0)
@@ -182,7 +180,7 @@ if query_params.get("strona") == "analiza":
                                 "KM": split.get('split', '-'),
                                 "Tempo": tempo_split,
                                 "Śr. Tętno": round(split.get('average_heartrate', 0)),
-                                "Wzrost (m)": split.get('elevation_difference', 0)
+                                "Wznios": split.get('elevation_difference', 0)
                             })
                         
                         df_splits = pd.DataFrame(splits)
@@ -197,6 +195,7 @@ if query_params.get("strona") == "analiza":
         st.error("Brakujące parametry w linku. Spróbuj ponownie z tabeli głównej.")
 
     st.stop()
+
 # ==========================================
 # 🛠️ FUNKCJE POMOCNICZE
 # ==========================================
@@ -404,6 +403,61 @@ if not check_password():
     st.stop()
 
 # ==========================================
+# 🚦 WIRTUALNY ROUTER - TRYB ANALIZY
+# ==========================================
+
+if st.session_state.get("widok_analizy", False):
+    if st.button("Wróć do panelu trenera"):
+        st.session_state.widok_analizy = False
+        st.rerun()
+        
+    trening_id = st.session_state.get("analiza_id")
+    zawodnik_imie = st.session_state.get("analiza_zawodnik")
+    
+    with st.spinner("Ładowanie analizy..."):
+        try:
+            doc_ref = fire_db.collection('zawodnicy-v2').document(zawodnik_imie).collection('historia_treningow').document(str(trening_id))
+            doc = doc_ref.get()
+
+            if doc.exists:
+                trening_dane = doc.to_dict()
+                
+                st.markdown(f"## 🔬 Analiza: {trening_dane.get('name', 'Brak nazwy')}")
+                st.markdown(f"**Zawodnik:** {zawodnik_imie} | **Data:** {trening_dane.get('start_date_local', '')[:10]}")
+                st.write("---")
+
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Max Tętno", f"{trening_dane.get('max_heartrate', '-')} bpm")
+                m2.metric("Śr. Kadencja", f"{trening_dane.get('average_cadence', '-')} spm")
+                m3.metric("Przewyższenie", f"{trening_dane.get('total_elevation_gain', '-')} m")
+                
+                st.write("---")
+                
+                if 'splits_metric' in trening_dane:
+                    st.markdown("### ⏱️ Splity")
+                    splits = []
+                    for split in trening_dane['splits_metric']:
+                        speed_ms = split.get('average_speed', 0)
+                        tempo_split = "-"
+                        if speed_ms > 0:
+                            p_dec = (1000 / speed_ms) / 60
+                            tempo_split = f"{int(p_dec)}:{int((p_dec - int(p_dec)) * 60):02d}"
+                            
+                        splits.append({
+                            "KM": split.get('split', '-'),
+                            "Tempo": tempo_split,
+                            "Śr. Tętno": round(split.get('average_heartrate', 0)),
+                            "Wznios": split.get('elevation_difference', 0)
+                        })
+                    st.dataframe(pd.DataFrame(splits), use_container_width=True, hide_index=True)
+                else:
+                    st.info("Brak szczegółowych międzyczasów dla tego treningu.")
+        except Exception as e:
+            st.error(f"Błąd odczytu bazy: {e}")
+
+    st.stop()
+
+# ==========================================
 # 📱 GŁÓWNY INTERFEJS APLIKACJI
 # ==========================================
 
@@ -604,7 +658,6 @@ with tab1:
                             activity_url = f"https://www.strava.com/activities/{activity_id}"
                             
                             wewnetrzny_link = f"?strona=analiza&id={activity_id}&zawodnik={wybrany_imie}"
-                            link_analiza = f'<a href="{wewnetrzny_link}" target="_self" style="text-decoration:none; color:#FC4C02; font-weight:bold;">📊 Analiza</a>'
                             
                             data.append({
                                 "Data": activity_date_str,
@@ -616,8 +669,7 @@ with tab1:
                                 "Czas (min)": duration_min, 
                                 "Tętno": avg_hr,
                                 "Tempo": pace_str,
-                                "Link": activity_url,
-                                "Akcja": link_analiza  # <--- Nowa kolumna!
+                                "ID Treningu": activity_id
                             })
 
                             # --- 3. ODCZYTYWANIE STREF TĘTNA Z BAZY ---
@@ -669,7 +721,7 @@ with tab1:
 
                                 final_df = df_filtered[[
                                     'Data', 'Typ', 'Nazwa Treningu', 
-                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'Akcja'
+                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'ID Treningu'
                                 ]]
                                 
                                 final_df = final_df.sort_values(by="Data", ascending=False)
@@ -681,9 +733,26 @@ with tab1:
 
                                 st.write("---")
                                 
-                                # W tabeli ukrywamy brzydką, suchą liczbę "Czas (min)"
-                                tabela_html = final_df.drop(columns=['Czas (min)']).to_html(escape=False, index=False)
-                                st.markdown(tabela_html, unsafe_allow_html=True)
+                                st.markdown("**Kliknij w dowolny wiersz tabeli, aby otworzyć szczegółową analizę treningu!**")
+                                
+                                event = st.dataframe(
+                                    final_df, 
+                                    use_container_width=True, 
+                                    hide_index=True,
+                                    on_select="rerun",
+                                    selection_mode="single-row"
+                                )
+                                
+                                # Jeśli trener kliknął w jakiś wiersz w tabeli:
+                                if len(event.selection.rows) > 0:
+                                    wybrany_indeks = event.selection.rows[0]
+                                    wybrany_id = final_df.iloc[wybrany_indeks]["ID Treningu"]
+                                    
+                                    # Uruchamiamy nasz Wirtualny Router!
+                                    st.session_state.widok_analizy = True
+                                    st.session_state.analiza_id = wybrany_id
+                                    st.session_state.analiza_zawodnik = wybrany_imie
+                                    st.rerun()
                                 
                                 # --- WYKRES CZASU TRENINGU ---
                                 if "Czas (min)" in final_df.columns and final_df["Czas (min)"].sum() > 0:

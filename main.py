@@ -6,7 +6,6 @@ import json
 import os
 import time
 
-
 import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -211,7 +210,7 @@ def check_password():
             email = st.text_input("Adres e-mail")
             password = st.text_input("Hasło", type="password")
 
-            submit = st.form_submit_button("Zaloguj się", type="primary", use_container_width=True)
+            submit = st.form_submit_button("Zaloguj się", type="primary", width="stretch")
 
             if submit:
                 if email and password:
@@ -380,7 +379,7 @@ def pokaz_analize(trening_id, zawodnik_imie):
                             "Śr. Tętno": round(split.get('average_heartrate', 0)),
                             "Wznios": split.get('elevation_difference', 0)
                         })
-                    st.dataframe(pd.DataFrame(splits), use_container_width=True, hide_index=True)
+                    st.dataframe(pd.DataFrame(splits), width="stretch", hide_index=True)
                 else:
                     st.info("Brak szczegółowych międzyczasów dla tego treningu.")
         except Exception as e:
@@ -596,6 +595,7 @@ with tab1:
                                 "Typ Polski": polski_typ,
                                 "Typ": raw_type_str,
                                 "Nazwa": activity.get('name', 'Brak nazwy'),
+                                "Strava": activity_url, # <--- NOWA KOLUMNA (LINK)
                                 "Dystans (km)": dist_km,
                                 "Czas": czas_str,            
                                 "Czas (min)": duration_min, 
@@ -648,7 +648,7 @@ with tab1:
                             else:
                                 final_df = df_filtered[[
                                     'Data', 'Typ', 'Nazwa', 
-                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'ID Treningu'
+                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'Strava', 'ID Treningu' # <--- ZMIANA
                                 ]]
                                 
                                 final_df = final_df.sort_values(by="Data", ascending=False)
@@ -668,10 +668,18 @@ with tab1:
                                 event = st.dataframe(
                                     final_df, 
                                     key=f"tabela_{st.session_state.klucz_tabeli}",
-                                    use_container_width=True, 
+                                    width="stretch", 
                                     hide_index=True,
                                     on_select="rerun",
-                                    selection_mode="single-row"
+                                    selection_mode="single-row",
+                                    column_config={
+                                        "Strava": st.column_config.LinkColumn(
+                                            "Strava",
+                                            help="Kliknij, aby otworzyć ten trening na Stravie",
+                                            display_text="Otwórz 🔗"
+                                        ),
+                                        "ID Treningu": None
+                                    }
                                 )
                                 
                                 # Jeśli trener kliknął w jakiś wiersz w tabeli:
@@ -748,7 +756,7 @@ with tab1:
                                         )
                                         # Wyłączamy sortowanie po wielkości (dzięki temu legenda jest Z1 -> Z5)
                                         fig_pie.update_traces(sort=False, textposition='inside', textinfo='percent')
-                                        st.plotly_chart(fig_pie, use_container_width=True)
+                                        st.plotly_chart(fig_pie, width="stretch")
 
                                     with col_bar:
                                         fig_bar = px.bar(
@@ -765,7 +773,7 @@ with tab1:
                                             yaxis={'categoryorder':'array', 'categoryarray': list(reversed(kolory_stref.keys()))},
                                             showlegend=False
                                         )
-                                        st.plotly_chart(fig_bar, use_container_width=True)
+                                        st.plotly_chart(fig_bar, width="stretch")
                                 else:
                                     # Brak danych (brak tętna lub brak konta Premium)
                                     st.info("Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")

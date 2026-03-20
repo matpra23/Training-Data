@@ -37,6 +37,7 @@ DB_FILE = 'zawodnicy-v2.json'
 st.logo(
     "intmon.png",
     icon_image="intmon.png",
+    link="https://coachplus.pl/"
 )
 
 # --- INICJALIZACJA BAZY FIREBASE ---
@@ -50,6 +51,94 @@ if not firebase_admin._apps:
 fire_db = firestore.client()
 
 # ==========================================
+# BRANDING I STYLIZACJA (PREMIUM DARK MODE)
+# ==========================================
+
+brand_style = """
+    <style>
+    /* GŁÓWNE TŁO I TEKST */
+    .stApp, .main {
+        background-color: #000000 !important;
+        color: #f5f5f7 !important;
+    }
+    
+    /* KARTY, EXPANDERY, FORMULARZE, BOCZNY PASEK (Tło #0a0a0c + szkliste ramki) */
+    [data-testid="stSidebar"],
+    div[data-testid="stExpander"] details,
+    div[data-testid="metric-container"],
+    div[data-testid="stForm"],
+    div[role="dialog"] {
+        background-color: #0a0a0c !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+    }
+    
+    div[data-testid="metric-container"] {
+        padding: 15px !important;
+    }
+
+    /* TYPOGRAFIA (Wyciszony tekst dla labeli i mniejszych opisów) */
+    p, label, .st-emotion-cache-1wivap2, .stMarkdown p {
+        color: #b4b4b8 !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6, [data-testid="stMetricValue"], .stMarkdown strong {
+        color: #f5f5f7 !important;
+    }
+
+    /* INPUTY I POLA FORMULARZA */
+    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
+        background-color: #000000 !important;
+        color: #f5f5f7 !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+    }
+
+    /* PRZYCISKI PRIMARY (Zwykłe ORAZ w formularzu logowania) */
+    button[kind="primary"],
+    div[data-testid="stFormSubmitButton"] button {
+        background-color: #4bb8ff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        transition: background-color 0.3s ease !important;
+    }
+    button[kind="primary"]:hover,
+    div[data-testid="stFormSubmitButton"] button:hover {
+        background-color: #339ce3 !important;
+    }
+    /* HACK: Brutalne wymuszenie czarnego tekstu na wszystkim wewnątrz przycisku (P, DIV, SPAN) */
+    button[kind="primary"] *,
+    div[data-testid="stFormSubmitButton"] button * {
+        color: #000000 !important; 
+        font-weight: 600 !important;
+    }
+
+    /* PRZYCISKI SECONDARY (Przezroczyste ze szklaną ramką) */
+    button[kind="secondary"] {
+        background-color: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+    }
+    button[kind="secondary"]:hover {
+        border-color: #4bb8ff !important;
+    }
+    button[kind="secondary"] p {
+        color: #f5f5f7 !important; 
+    }
+    button[kind="secondary"]:hover p {
+        color: #4bb8ff !important; 
+    }
+    
+    /* Ukrywanie menu Streamlita */
+    #MainMenu {visibility: hidden;} 
+    .stAppDeployButton {display: none;}
+    </style>
+"""
+st.markdown(brand_style, unsafe_allow_html=True)
+
+
+# ==========================================
 # ROUTER (STEROWANIE STRONAMI)
 # ==========================================
 
@@ -60,8 +149,8 @@ if query_params.get("strona") == "prywatnosc":
 
     # Przycisk powrotu
     if st.button("Wróć do aplikacji"):
-        st.query_params.clear() # Czyści link z "?strona=prywatnosc"
-        st.rerun()              # Odświeża stronę do stanu początkowego
+        st.query_params.clear() 
+        st.rerun()              
 
     st.markdown("""
     # Polityka Prywatności
@@ -117,8 +206,8 @@ if query_params.get("strona") == "sukces":
 
     # Przycisk powrotu
     if st.button("Wróć do aplikacji"):
-        st.query_params.clear() # Czyści link z "?strona=sukces"
-        st.rerun()              # Odświeża stronę do stanu początkowego
+        st.query_params.clear() 
+        st.rerun()              
 
     auth_code = query_params.get("code", ["Błąd"])[0] if isinstance(query_params.get("code"), list) else query_params.get("code")
     
@@ -138,7 +227,7 @@ if query_params.get("strona") == "sukces":
 # ==========================================
 
 def render_footer():
-    """Wyświetla stopkę na dole strony"""
+    """Wyświetla stopkę na dole strony (Zaktualizowane kolory)"""
     LINK_DO_POLITYKI = "https://app.coachplus.pl/?strona=prywatnosc"
 
     st.markdown(f"""
@@ -148,20 +237,22 @@ def render_footer():
             left: 0;
             bottom: 0;
             width: 100%;
-            background-color: #0e1117;
-            color: #FAFAFA;
+            background-color: #0a0a0c; /* Kolor kart */
+            color: #b4b4b8; /* Wyciszony tekst */
             text-align: center;
-            padding: 10px;
-            border-top: 1px solid #333;
+            padding: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08); /* Szklista ramka */
             z-index: 9999;
             font-size: 13px;
         }}
         .footer a {{
-            color: #FC4C02;
+            color: #4bb8ff; /* Główny błękit */
             text-decoration: none;
             font-weight: bold;
+            transition: color 0.3s;
         }}
         .footer a:hover {{
+            color: #339ce3; /* Hover błękit */
             text-decoration: underline;
         }}
         .block-container {{
@@ -191,7 +282,7 @@ def check_password():
         # Pasek boczny z informacją o zalogowanym trenerze i przyciskiem wylogowania
         with st.sidebar:
             st.markdown(f"Zalogowany jako:<br>**{st.session_state.email}**", unsafe_allow_html=True)
-            if st.button("Wyloguj się"):
+            if st.button("Wyloguj się", type="secondary"):
                 # Czyszczenie sesji
                 del st.session_state["user_id"]
                 del st.session_state["email"]
@@ -204,7 +295,7 @@ def check_password():
     with col2:
         st.write("")
         st.markdown("<h2 style='text-align: center;'>Panel Trenera</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #888888; margin-bottom: 20px;'>Zaloguj się do swojego konta, aby zarządzać zawodnikami</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; margin-bottom: 20px;'>Zaloguj się do swojego konta, aby zarządzać zawodnikami</p>", unsafe_allow_html=True)
         
         with st.form("login_form"):
             email = st.text_input("Adres e-mail")
@@ -240,7 +331,7 @@ def check_password():
                     st.warning("Wpisz e-mail i hasło.")
                     
     return False
-# 
+
 def load_db():
     """Wczytuje bazę prosto z chmury Firebase (TYLKO dla zalogowanego trenera)"""
     db = {}
@@ -260,11 +351,9 @@ def load_db():
 def save_db(db, zmieniony_zawodnik=None):
     """Zapisuje zaktualizowane tokeny w chmurze Firebase"""
     try:
-        # Zapisujemy lub aktualizujemy dane każdego zawodnika w kolekcji
         for imie, data in db.items():
             fire_db.collection('zawodnicy-v2').document(imie).set(data)
             
-        # Zostawiamy powiadomienie na Discordzie ze szczegółami
         if "DISCORD_WEBHOOK" in st.secrets:
             if zmieniony_zawodnik:
                 wiadomosc = f"☁️ **Firebase Zaktualizowany!** (Dodano/odświeżono zawodnika: **{zmieniony_zawodnik}**)"
@@ -276,34 +365,26 @@ def save_db(db, zmieniony_zawodnik=None):
             
     except Exception as e:
         st.error(f"🚨 Błąd zapisu do bazy chmurowej: {e}")
-            
-    except Exception as e:
-        st.error(f"🚨 Błąd zapisu do bazy chmurowej: {e}")
 
 def extract_number(value, type_hint="number"):
     if value is None: return 0.0
     if isinstance(value, (int, float)): return float(value)
-    
     if type_hint == "time":
         if hasattr(value, 'total_seconds'): return value.total_seconds()
         if hasattr(value, 'seconds'): return value.seconds
-        
     if hasattr(value, 'magnitude'): return float(value.magnitude)
     if hasattr(value, 'num'): return float(value.num)
-    
     try: return float(value)
     except: return 0.0
 
 def parse_token_response(response):
-    """Bezpiecznie wyciąga tokeny i ID zawodnika, niezależnie od tego, czy stravalib zwróci słownik, czy obiekt."""
+    """Bezpiecznie wyciąga tokeny i ID zawodnika."""
     if isinstance(response, tuple):
         response = response[0]
         
-    # Przygotowujemy zmienną na ID
     athlete_id = None
         
     if isinstance(response, dict):
-        # Wyciąganie ID ze słownika
         athlete_data = response.get('athlete', {})
         if isinstance(athlete_data, dict):
             athlete_id = athlete_data.get('id')
@@ -312,10 +393,9 @@ def parse_token_response(response):
             'access_token': response.get('access_token'),
             'refresh_token': response.get('refresh_token'),
             'expires_at': response.get('expires_at'),
-            'athlete_id': athlete_id  # <--- Dodane pole!
+            'athlete_id': athlete_id  
         }
     else:
-        # Wyciąganie ID z obiektu
         athlete_data = getattr(response, 'athlete', None)
         if athlete_data:
             if isinstance(athlete_data, dict):
@@ -327,7 +407,7 @@ def parse_token_response(response):
             'access_token': getattr(response, 'access_token', None),
             'refresh_token': getattr(response, 'refresh_token', None),
             'expires_at': getattr(response, 'expires_at', None),
-            'athlete_id': athlete_id  # <--- Dodane pole!
+            'athlete_id': athlete_id  
         }
 
 # ==========================================
@@ -412,7 +492,6 @@ with tab1:
                 st.warning(f"Czy na pewno chcesz usunąć zawodnika **{wybrany_imie}**? Usunięcie z bazy jest nieodwracalne.")
                 if st.button(f"Ostatecznie usuń: {wybrany_imie}", type="primary"):
                     with st.spinner("Usuwam historię treningów i czyszczę bazę... 🧹"):
-                        # 1. Wchodzimy do podkolekcji z treningami i kasujemy je jeden po drugim
                         treningi_ref = fire_db.collection('zawodnicy-v2').document(wybrany_imie).collection('historia_treningow')
                         treningi_docs = treningi_ref.stream()
                         
@@ -421,28 +500,18 @@ with tab1:
                             doc.reference.delete()
                             licznik += 1
                             
-                        # 2. Dopiero jak teczka z treningami jest pusta, usuwamy głównego zawodnika (tokeny)
                         fire_db.collection('zawodnicy-v2').document(wybrany_imie).delete()
                     
-                    # 3. Powiadomienie na Discordzie
                     if "DISCORD_WEBHOOK" in st.secrets:
                         wiadomosc_usuniecie = f"🗑️ **Zawodnik Usunięty!** (Skasowano {licznik} treningów oraz profil: **{wybrany_imie}**)"
                         requests.post(st.secrets["DISCORD_WEBHOOK"], json={"content": wiadomosc_usuniecie})
                         
                     st.success(f"Pomyślnie usunięto zawodnika i wyczyszczono jego {licznik} treningów z bazy!")
-                    time.sleep(2) # Dajemy 2 sekundy na przeczytanie komunikatu
-                    st.rerun()
-                    
-                    # 2. Powiadomienie na Discordzie
-                    if "DISCORD_WEBHOOK" in st.secrets:
-                        wiadomosc_usuniecie = f"🗑️ **Zawodnik Usunięty!** (Trwale wykasowano z bazy: **{wybrany_imie}**)"
-                        requests.post(st.secrets["DISCORD_WEBHOOK"], json={"content": wiadomosc_usuniecie})
-                        
+                    time.sleep(2) 
                     st.rerun()
             
             client = Client()
             
-            # Automatyczne odświeżanie tokena
             if time.time() > zawodnik_data['expires_at']:
                 try:
                     refresh_response = client.refresh_access_token(
@@ -450,8 +519,6 @@ with tab1:
                         client_secret=MY_CLIENT_SECRET,
                         refresh_token=zawodnik_data['refresh_token']
                     )
-                    
-                    # Bezpieczne wyciągnięcie danych
                     nowe_dane = parse_token_response(refresh_response)
                     
                     db[wybrany_imie]['access_token'] = nowe_dane['access_token']
@@ -464,7 +531,6 @@ with tab1:
 
             client.access_token = db[wybrany_imie]['access_token']
             
-            # --- FILTRY ---
             st.write("---")
             st.subheader("Ustawienia analizy")
             
@@ -482,43 +548,29 @@ with tab1:
                 "NordicSki": "Bieganie na nartach", "BackcountrySki": "Bieganie na nartach", "RollerSki": "Bieganie na nartach"
             }
             
-            # --- CHECKBOXY ZAMIAST MULTISELECTA ---
             st.markdown("**Wybierz typy aktywności do analizy:**")
             
-            # Tworzymy 3 kolumny
             c1, c2, c3 = st.columns(3)
             
             wybrane_typy = []
             
-            # Rząd 1
-            if c1.checkbox("Bieganie", value=False): 
-                wybrane_typy.append("Bieganie")
-            if c2.checkbox("Jazda na rowerze", value=False): 
-                wybrane_typy.append("Jazda na rowerze")
-            if c3.checkbox("Pływanie", value=False): 
-                wybrane_typy.append("Pływanie")
+            if c1.checkbox("Bieganie", value=False): wybrane_typy.append("Bieganie")
+            if c2.checkbox("Jazda na rowerze", value=False): wybrane_typy.append("Jazda na rowerze")
+            if c3.checkbox("Pływanie", value=False): wybrane_typy.append("Pływanie")
                 
-            # Rząd 2
-            if c1.checkbox("Bieganie na nartach", value=False): 
-                wybrane_typy.append("Bieganie na nartach")
-            if c2.checkbox("Wiosłowanie", value=False): 
-                wybrane_typy.append("Wiosłowanie")
-            if c3.checkbox("Siłownia", value=False): 
-                wybrane_typy.append("Siłownia")
+            if c1.checkbox("Bieganie na nartach", value=False): wybrane_typy.append("Bieganie na nartach")
+            if c2.checkbox("Wiosłowanie", value=False): wybrane_typy.append("Wiosłowanie")
+            if c3.checkbox("Siłownia", value=False): wybrane_typy.append("Siłownia")
                 
-            # Rząd 3
-            if c1.checkbox("Spacer", value=False): 
-                wybrane_typy.append("Spacer")
-            if c2.checkbox("Inne", value=False): 
-                wybrane_typy.append("Inne")
+            if c1.checkbox("Spacer", value=False): wybrane_typy.append("Spacer")
+            if c2.checkbox("Inne", value=False): wybrane_typy.append("Inne")
 
-            if st.button("Pobierz i filtruj treningi"):
+            if st.button("Pobierz i filtruj treningi", type="primary"):
                 st.session_state.pokaz_tabele = True
 
             if st.session_state.get("pokaz_tabele", False):
                 with st.spinner('Wczytuję dane z bazy...'):
                     try:
-                        # 1. Czytanie z Firebase
                         treningi_ref = fire_db.collection('zawodnicy-v2').document(wybrany_imie).collection('historia_treningow')
                         docs = treningi_ref.stream()
                         
@@ -533,30 +585,20 @@ with tab1:
                         for doc in docs:
                             activity = doc.to_dict()
                             
-                            # --- FILTROWANIE PO DACIE ---
                             start_date_str = activity.get('start_date_local', '')
-                            if not start_date_str:
-                                continue
+                            if not start_date_str: continue
                                 
-                            # Konwertujemy tekst "2026-03-10T15:30:00Z" na samą datę "2026-03-10"
                             activity_date_str = start_date_str[:10]
                             activity_date = pd.to_datetime(activity_date_str).date()
                             
-                            # Jeśli data nie mieści się w filtrze z suwaków, pomijamy ten trening
-                            if not (start_date <= activity_date <= end_date):
-                                continue
+                            if not (start_date <= activity_date <= end_date): continue
 
-                            # --- 1. POBIERANIE TYPU ---
-                            # (Czytamy ze słownika, a nie z obiektu stravalib)
                             raw_type_str = activity.get('sport_type') or activity.get('type', 'Unknown')
                             polski_typ = TYPE_MAP.get(raw_type_str, "Inne")
                             
-                            if polski_typ == "Inne":
-                                nierozpoznane_typy.add(raw_type_str)
+                            if polski_typ == "Inne": nierozpoznane_typy.add(raw_type_str)
 
-                            # --- 2. PRZELICZANIE DANYCH ---
                             dist_km = round(activity.get('distance', 0) / 1000, 2)
-                            
                             duration_sec = activity.get('moving_time', 0)
                             duration_min = int(round(duration_sec / 60)) 
                             
@@ -566,7 +608,6 @@ with tab1:
                             czas_str = f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
 
                             avg_hr = round(activity.get('average_heartrate', 0))
-                            
                             avg_speed_ms = activity.get('average_speed', 0)
                             pace_str = "-"
                             
@@ -588,14 +629,12 @@ with tab1:
                             activity_id = activity.get('id')
                             activity_url = f"https://www.strava.com/activities/{activity_id}"
                             
-                            wewnetrzny_link = f"?strona=analiza&id={activity_id}&zawodnik={wybrany_imie}"
-                            
                             data.append({
                                 "Data": activity_date_str,
                                 "Typ Polski": polski_typ,
                                 "Typ": raw_type_str,
                                 "Nazwa": activity.get('name', 'Brak nazwy'),
-                                "Strava": activity_url, # <--- NOWA KOLUMNA (LINK)
+                                "Strava": activity_url, 
                                 "Dystans (km)": dist_km,
                                 "Czas": czas_str,            
                                 "Czas (min)": duration_min, 
@@ -604,22 +643,17 @@ with tab1:
                                 "ID Treningu": activity_id
                             })
 
-                            # --- 3. ODCZYTYWANIE STREF TĘTNA Z BAZY ---
-                            # Sprawdzamy, czy w pobranym JSON-ie zapisaliśmy klucz 'zones'
                             if activity.get('has_heartrate') and 'zones' in activity:
                                 for z in activity['zones']:
                                     if z.get('type') == 'heartrate' and 'distribution_buckets' in z:
                                         buckets = z['distribution_buckets']
                                         if len(buckets) >= 5:
-                                            # Firebase zapisuje czas w sekundach, wyciągamy go bezpiecznie z get()
                                             hr_zones_aggregated["Z1 (Regeneracja)"] += buckets[0].get('time', 0)
                                             hr_zones_aggregated["Z2 (Wytrzymałość)"] += buckets[1].get('time', 0)
                                             hr_zones_aggregated["Z3 (Tempo)"] += buckets[2].get('time', 0)
                                             hr_zones_aggregated["Z4 (Próg)"] += buckets[3].get('time', 0)
                                             hr_zones_aggregated["Z5 (Anaerobowa)"] += buckets[4].get('time', 0)
 
-                            # --- POBIERANIE STREF TĘTNA ---
-                            # Pobieramy zawsze, jeśli trening w ogóle ma zapisane tętno
                             if getattr(activity, 'has_heartrate', False):
                                 try:
                                     zones = client.get_activity_zones(activity.id)
@@ -633,9 +667,8 @@ with tab1:
                                                 hr_zones_aggregated["Z4 (Próg)"] += buckets[3].time
                                                 hr_zones_aggregated["Z5 (Anaerobowa)"] += buckets[4].time
                                 except Exception as e:
-                                    pass # Ignorujemy błędy (np. brak premium odrzuci to zapytanie)
+                                    pass 
                         
-                        # --- DIAGNOSTYKA I WYNIKI ---
                         if nierozpoznane_typy:
                             st.warning(f"⚠️ Znaleziono nowe typy: {nierozpoznane_typy}")
 
@@ -648,9 +681,8 @@ with tab1:
                             else:
                                 final_df = df_filtered[[
                                     'Data', 'Typ', 'Nazwa', 
-                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'Strava', 'ID Treningu' # <--- ZMIANA
+                                    'Dystans (km)', 'Czas', 'Czas (min)', 'Tętno', 'Tempo', 'Strava', 'ID Treningu'
                                 ]]
-                                
                                 final_df = final_df.sort_values(by="Data", ascending=False)
                                 
                                 c1, c2, c3 = st.columns(3)
@@ -682,60 +714,49 @@ with tab1:
                                     }
                                 )
                                 
-                                # Jeśli trener kliknął w jakiś wiersz w tabeli:
                                 if len(event.selection.rows) > 0:
                                     wybrany_indeks = event.selection.rows[0]
                                     wybrany_id = final_df.iloc[wybrany_indeks]["ID Treningu"]
                                     
-                                    # Zabezpieczenie, by okienko nie pop-up'owało się w nieskończoność
                                     if st.session_state.get("ostatni_trening") != wybrany_id:
                                         st.session_state.ostatni_trening = wybrany_id
-                                        st.session_state.klucz_tabeli += 1 # <--- Magia! Zmuszamy tabelę do resetu zaznaczenia
+                                        st.session_state.klucz_tabeli += 1 
                                         pokaz_analize(wybrany_id, wybrany_imie)
                                 else:
-                                    # Jeśli tabela jest czysta, czyścimy pamięć ostatniego treningu
                                     st.session_state.ostatni_trening = None
                                 
-                                # --- WYKRES CZASU TRENINGU ---
                                 if "Czas (min)" in final_df.columns and final_df["Czas (min)"].sum() > 0:
-                                    
-                                    # INTELIGENTNE KOLOROWANIE:
                                     if len(wybrane_typy) > 1:
                                         kolor_wg = "Typ" 
                                         tytul_wykresu = "Dzienny czas trwania aktywności"
                                     else:
-                                        # Skoro na osi Y jest czas, pokolorujmy słupki na podstawie intensywności (Tętna)
                                         kolor_wg = "Tętno" 
                                         tytul_wykresu = f"Dzienny czas treningu ({wybrane_typy[0]})"
 
                                     fig = px.bar(
                                         final_df, 
                                         x="Data", 
-                                        y="Czas (min)", # <--- ZMIANA TUTAJ
+                                        y="Czas (min)", 
                                         title=tytul_wykresu, 
                                         color=kolor_wg,
-                                        # Dodaliśmy dystans do "dymka" z informacjami po najechaniu myszką!
                                         hover_data=["Nazwa", "Czas", "Dystans (km)", "Tempo", "Tętno"]
                                     )
+                                    # Ustawiamy tło wykresu na przezroczyste, by pasowało do motywu!
+                                    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
                                     st.plotly_chart(fig)
                                 
-                                # ==========================================
-                                # WIZUALIZACJA STREF TĘTNA
-                                # ==========================================
                                 st.write("---")
                                 st.subheader("Analiza stref tętna")
 
                                 if sum(hr_zones_aggregated.values()) > 0:
-                                    # Mamy dane -> Rysujemy wykresy
                                     df_zones = pd.DataFrame({
                                         "Strefa": list(hr_zones_aggregated.keys()),
                                         "Czas (min)": [int(round(v / 60)) for v in hr_zones_aggregated.values()]
                                     })
                                     
-                                    # Sztywne przypisanie kolorów do stref (najbezpieczniejsza metoda)
                                     kolory_stref = {
-                                        "Z1 (Regeneracja)": "#9E9E9E",
-                                        "Z2 (Wytrzymałość)": "#2196F3",
+                                        "Z1 (Regeneracja)": "#b4b4b8", # Wyciszony szary
+                                        "Z2 (Wytrzymałość)": "#4bb8ff", # Twój błękit!
                                         "Z3 (Tempo)": "#4CAF50",
                                         "Z4 (Próg)": "#FF9800",
                                         "Z5 (Anaerobowa)": "#F44336"
@@ -750,12 +771,12 @@ with tab1:
                                             values="Czas (min)",
                                             hole=0.4, 
                                             color="Strefa", 
-                                            color_discrete_map=kolory_stref, # Używamy mapy
-                                            category_orders={"Strefa": list(kolory_stref.keys())}, # Wymuszamy kolejność
+                                            color_discrete_map=kolory_stref, 
+                                            category_orders={"Strefa": list(kolory_stref.keys())}, 
                                             title="Proporcje spędzonego czasu"
                                         )
-                                        # Wyłączamy sortowanie po wielkości (dzięki temu legenda jest Z1 -> Z5)
                                         fig_pie.update_traces(sort=False, textposition='inside', textinfo='percent')
+                                        fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
                                         st.plotly_chart(fig_pie, width="stretch")
 
                                     with col_bar:
@@ -765,17 +786,17 @@ with tab1:
                                             y="Strefa", 
                                             orientation='h',
                                             color="Strefa", 
-                                            color_discrete_map=kolory_stref, # Używamy tej samej mapy
+                                            color_discrete_map=kolory_stref, 
                                             title="Całkowity czas w minutach", 
                                             text="Czas (min)"
                                         )
                                         fig_bar.update_layout(
                                             yaxis={'categoryorder':'array', 'categoryarray': list(reversed(kolory_stref.keys()))},
-                                            showlegend=False
+                                            showlegend=False,
+                                            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)'
                                         )
                                         st.plotly_chart(fig_bar, width="stretch")
                                 else:
-                                    # Brak danych (brak tętna lub brak konta Premium)
                                     st.info("Brak danych o strefach tętna w wybranym okresie. Funkcja ta wymaga, aby zawodnik posiadał subskrypcję Strava Premium oraz rejestrował tętno podczas treningów.")
                         else:
                             st.warning("Brak treningów w tym okresie.")
@@ -810,19 +831,15 @@ with tab2:
     code_input = col_a.text_input("Wklej kod autoryzacji (code):")
     name_input = col_b.text_input("Nazwa zawodnika (np. Janek):")
     
-    if st.button("Zapisz zawodnika w bazie"):
+    if st.button("Zapisz zawodnika w bazie", type="primary"):
         if code_input and name_input:
             try:
-                # 1. Wymiana kodu na tokeny
                 token_response = client.exchange_code_for_token(
                     client_id=MY_CLIENT_ID,
                     client_secret=MY_CLIENT_SECRET,
                     code=code_input
                 )
-                
                 nowe_dane = parse_token_response(token_response)
-                
-                # --- 2. KULOODPORNE POBIERANIE ID ---
                 athlete_id = nowe_dane.get('athlete_id')
                 
                 if not athlete_id:
@@ -834,7 +851,6 @@ with tab2:
                     else:
                         st.warning("Uwaga: Udało się pobrać tokeny, ale Strava nie oddała ID zawodnika.")
 
-                # 3. Zapis do naszej bazy Firebase
                 db = load_db()
                 db[name_input] = {
                     'athlete_id': athlete_id,
@@ -846,15 +862,10 @@ with tab2:
                 save_db(db, zmieniony_zawodnik=name_input)
                 st.success(f"Sukces! Dodano zawodnika: {name_input} (ID: {athlete_id})")
 
-                # 4. AUTOMATYCZNE POBIERANIE HISTORII (2 TYGODNIE)
                 with st.spinner('Pobieram historię treningów z ostatnich 14 dni...'):
                     try:
-                        # Obliczamy timestamp dla daty 14 dni temu
                         dwa_tygodnie_temu = int(time.time()) - (14 * 24 * 3600)
-                        
                         headers = {'Authorization': f"Bearer {nowe_dane['access_token']}"}
-                        
-                        # Pobieramy listę aktywności zawodnika od tej daty
                         res_activities = requests.get(
                             'https://www.strava.com/api/v3/athlete/activities',
                             headers=headers,
@@ -863,29 +874,19 @@ with tab2:
                         
                         if res_activities.status_code == 200:
                             activities_list = res_activities.json()
-                            
-                            # Referencja do teczki tego zawodnika w bazie
                             user_ref = fire_db.collection('zawodnicy-v2').document(name_input)
-                            
                             zapisane_treningi = 0
                             
                             for act in activities_list:
                                 act_id = act.get('id')
-                                
-                                # Pobieramy pełne detale treningu, żeby mieć to samo co w Webhooku!
                                 res_detail = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}', headers=headers)
                                 
                                 if res_detail.status_code == 200:
                                     full_act = res_detail.json()
-                                    
-                                    # --- NOWOŚĆ: POBIERAMY STREFY TĘTNA! ---
                                     if full_act.get('has_heartrate'):
                                         res_zones = requests.get(f'https://www.strava.com/api/v3/activities/{act_id}/zones', headers=headers)
                                         if res_zones.status_code == 200:
-                                            # Doklejamy nową "szufladkę" 'zones' do naszego głównego JSON-a!
                                             full_act['zones'] = res_zones.json()
-                                            
-                                    # Zapisujemy kompletny JSON (razem ze strefami) do bazy
                                     user_ref.collection('historia_treningow').document(str(act_id)).set(full_act)
                                     zapisane_treningi += 1
                                 else:
@@ -905,12 +906,3 @@ with tab2:
                 st.warning("Sprawdź czy kod jest poprawny i czy Client ID/Secret w kodzie są dobre.")
         else:
             st.warning("Wypełnij oba pola (Kod i Nazwa).")
-
-# --- UKRYWANIE MENU STREAMLIT ---
-hide_menu_style = """
-    <style>
-    #MainMenu {visibility: hidden;} /* Ukrywa hamburger menu z linkiem do GitHuba */
-    .stAppDeployButton {display: none;} /* Ukrywa TYLKO przycisk Deploy, chroniąc logo */
-    </style>
-"""
-st.markdown(hide_menu_style, unsafe_allow_html=True)

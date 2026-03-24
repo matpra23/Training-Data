@@ -4,3 +4,5 @@ pandas
 plotly
 requests
 firebase-admin
+streamlit-calendar
+streamlit-option-menu

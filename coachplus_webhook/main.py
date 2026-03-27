@@ -4,6 +4,8 @@ import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
 import time
+# 💡 NOWY IMPORT: specjalny obiekt do filtrowania zapytań
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 if not firebase_admin._apps:
     firebase_admin.initialize_app()
@@ -15,7 +17,8 @@ CLIENT_SECRET = "274d854d0a6eb35e9cfd4cad7da1b830fec2fff3"
 
 def pobierz_aktywny_token(athlete_id):
     """Szuka zawodnika w bazie i odświeża token Stravy, jeśli wygasł."""
-    zawodnicy_ref = db.collection('zawodnicy-v2').where('athlete_id', '==', athlete_id).limit(1).get()
+    # 🧹 Zmiana 1: Użycie FieldFilter
+    zawodnicy_ref = db.collection('podopieczni').where(filter=FieldFilter('athlete_id', '==', athlete_id)).limit(1).get()
     
     if not zawodnicy_ref:
         print(f"Nie znaleziono zawodnika o ID {athlete_id} w bazie.")
@@ -77,7 +80,8 @@ def strava_webhook(request):
                 # ==========================================
                 # 🛡️ BRAMKARZ (IDEMPOTENCY CHECK)
                 # ==========================================
-                zawodnicy_ref = db.collection('zawodnicy-v2').where('athlete_id', '==', athlete_id).limit(1).get()
+                # 🧹 Zmiana 2: Użycie FieldFilter
+                zawodnicy_ref = db.collection('podopieczni').where(filter=FieldFilter('athlete_id', '==', athlete_id)).limit(1).get()
                 if zawodnicy_ref:
                     user_ref = zawodnicy_ref[0].reference
                     trening_ref = user_ref.collection('historia_treningow').document(str(activity_id))
@@ -108,7 +112,8 @@ def strava_webhook(request):
             # --- SCENARIUSZ 2: USUNIĘCIE TRENINGU ---
             elif aspect_type == 'delete':
                 print(f"Otrzymano prośbę o usunięcie treningu {activity_id}...")
-                zawodnicy_ref = db.collection('zawodnicy-v2').where('athlete_id', '==', athlete_id).limit(1).get()
+                # 🧹 Zmiana 3: Użycie FieldFilter
+                zawodnicy_ref = db.collection('podopieczni').where(filter=FieldFilter('athlete_id', '==', athlete_id)).limit(1).get()
                 
                 if zawodnicy_ref:
                     user_ref = zawodnicy_ref[0].reference
@@ -123,7 +128,8 @@ def strava_webhook(request):
                     nowa_nazwa = updates['title']
                     print(f"Trening {activity_id} zmienia nazwę na: {nowa_nazwa}")
                     
-                    zawodnicy_ref = db.collection('zawodnicy-v2').where('athlete_id', '==', athlete_id).limit(1).get()
+                    # 🧹 Zmiana 4: Użycie FieldFilter
+                    zawodnicy_ref = db.collection('podopieczni').where(filter=FieldFilter('athlete_id', '==', athlete_id)).limit(1).get()
                     
                     if zawodnicy_ref:
                         user_ref = zawodnicy_ref[0].reference

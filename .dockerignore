@@ -1,0 +1,13 @@
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.git/
+.vscode/
+coachplus_admin/
+coachplus_webhook/
+
+# Odcięcie lokalnych sekretów przed wysłaniem obrazu:
+.streamlit/secrets.toml
+coachplus-f651f-firebase-adminsdk-*.json

@@ -12,4 +12,4 @@ generator_tokena.py
 __pycache__/
 
 .devcontainer
-
+.streamlit/secrets.toml

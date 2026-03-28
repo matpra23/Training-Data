@@ -106,22 +106,23 @@ st.markdown(brand_style, unsafe_allow_html=True)
 def render_footer():
     """Wyświetla stopkę na dole strony"""
     LINK_DO_POLITYKI = "https://app.coachplus.pl/?strona=prywatnosc"
-    st.markdown(f"""
-        <style>
-        .footer {{
-            position: fixed; left: 0; bottom: 0; width: 100%;
-            background-color: #0a0a0c; color: #b4b4b8; text-align: center;
-            padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);
-            z-index: 9999; font-size: 13px;
-        }}
-        .footer a {{ color: #4bb8ff; text-decoration: none; font-weight: bold; transition: color 0.3s; }}
-        .footer a:hover {{ color: #339ce3; text-decoration: underline; }}
-        .block-container {{ padding-bottom: 60px; }}
-        </style>
-        <div class="footer">
-            <p style="margin: 0;">© 2026 <b>IntMonDev</b>. All rights reserved. | Using Strava API | <a href="{LINK_DO_POLITYKI}" target="_blank">Polityka Prywatności</a></p>
-        </div>
-    """, unsafe_allow_html=True)
+    if "user_id" not in st.session_state:
+        st.markdown(f"""
+            <style>
+            .footer {{
+                position: fixed; left: 0; bottom: 0; width: 100%;
+                background-color: #0a0a0c; color: #b4b4b8; text-align: center;
+                padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+                z-index: 9999; font-size: 13px;
+            }}
+            .footer a {{ color: #4bb8ff; text-decoration: none; font-weight: bold; transition: color 0.3s; }}
+            .footer a:hover {{ color: #339ce3; text-decoration: underline; }}
+            .block-container {{ padding-bottom: 60px; }}
+            </style>
+            <div class="footer">
+                <p style="margin: 0;">© 2026 <b>IntMonDev</b>. All rights reserved. | Using Strava API | <a href="{LINK_DO_POLITYKI}" target="_blank">Polityka Prywatności</a></p>
+            </div>
+        """, unsafe_allow_html=True)
 
 render_footer()
 

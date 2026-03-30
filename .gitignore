@@ -1,6 +1,8 @@
 #Dane wrażliwe
 .env
 *.json
+.venv/
+path/
 
 #Opcja uruchomienia aplikacji
 launch.txt
